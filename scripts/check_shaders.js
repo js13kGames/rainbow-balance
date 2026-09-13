@@ -63,19 +63,17 @@ const OUTLIERS = 1e-5;
 const INSTANCES = {
     // x, y at the hooves; scale, signed by facing; phase; side; fighting;
     // health; the block of ice over it; the cape, −1 for a fighter and 0…1
-    // for how charged a mage's spell is; the frost, or a rage the other way
-    // up. The sweep has to reach all four, and keep them apart while it does:
-    // the ice is drawn over the whole animal, so the one case that is under a
-    // block is the one case with no cape, no frost and no rage to hide, and
-    // the frost and the rage are two ends of one float and cannot both be on
-    // one instance. `rage` on a case is what asks for the negative end.
+    // for how charged a mage's spell is; a rage, as a negative. The sweep has
+    // to reach all three and keep them apart while it does: the ice is drawn
+    // over the whole animal, so the one case under a block has no cape and no
+    // rage to hide. `rage` on a case is what asks for it.
     unicorn: (c) => [0, -0.14, 0.62, c.uTime * 1.7, c.uBalance > 0 ? 1 : 0, 0.6, 0.45,
         c.spell > 0.8 ? 0.7 : 0,
         c.uBalance ? Math.abs(c.uBalance) : -1,
-        c.rage ? -c.rage : c.spell < 0.5 ? 1 - c.spell : 0],
+        c.rage ? -c.rage : 0],
     // x, y; size; age; side; place on the mane's hue sweep, or one of the
-    // flat colours behind it: −1 the body, −2 a promotion's white, and −3,
-    // −4, −5 the frost, the smite and the rage a spell is drawn as. `hue` on
+    // flat colours behind it: −1 the body, −2 a promotion's white, and −3
+    // to −6 the frost, smite, rage and turncoat lines. `hue` on
     // a case names one outright; the rest come off the balance.
     sparks: (c) => [0, 0, 0.3, 0.3, c.uBalance > 0 ? 1 : 0,
         c.hue ?? (c.uBalance < -0.5 ? -3 : c.uBalance > 0.5 ? -2 : 0.5)],
@@ -102,8 +100,7 @@ const attribsOf = (vs) =>
  * no shader has declared that in a long while.
  *
  * `rage` and `hue` are two more of those, and both name a colour the sweep
- * would otherwise never reach: a unicorn in a rage, which is the far end of
- * the one float the frost is at the near end of, and the two spell colours
+ * would otherwise never reach: a unicorn in a rage, and the spell colours
  * that are not the frost.
  *
  * uCastle is the castle pass's: where one stands, on the screen and through
@@ -120,8 +117,8 @@ const CASES = [
     // The right foot, obsidian, held outright.
     { uTime: 3.0, uBalance: 0.75, spell: 0.35, uCastle: [0.6825, -0.1545, 1, 1] },
     // Far up the field, nobody's: the smallest a castle ever draws. And the
-    // unicorn in this one is in a rage, which is the negative end of the
-    // frost's float — a case with no ice over it to hide the tint.
+    // unicorn in this one is in a rage — a case with no ice over it to hide
+    // the tint.
     { uTime: 7.5, uBalance: -0.4, spell: 0.7, rage: 0.8, hue: -4, uCastle: [0, 0.02, 0, 0] },
     // The same, half way to being someone's.
     { uTime: 11.0, uBalance: 1.0, spell: 0.0, uCastle: [0, 0.02, 1, 0.5] },

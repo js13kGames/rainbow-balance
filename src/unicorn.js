@@ -44,17 +44,10 @@
  *   aT.w   the cape: −1 for a fighter, which has none, and 0…1 for a mage,
  *              which is how charged the spell on its horn is. One float for
  *              both because the sign already says which animal this is
- *   aF     what a wizard has put on it, and which way round says which:
- *              0…1 is a mage's frost, how much of the freeze is still on it,
- *              and −1…0 is a rage, how much of that is left. One float for
- *              the two the same way aT.w carries the cape, and the frost
- *              wins it when a berserker is frozen — an animal that cannot
- *              move is the more important of the two to show. Frost is not
- *              the same thing as the ice, and those two can both be on one
- *              animal: the player's block over a unicorn a mage has frozen
- *
- * Who is where, and what they are doing, is sim.js's business; this file
- * only draws what it is handed.
+ *   aF     a rage, how much of it is left, from 0 down to −1: a wizard's
+ *              rage running out, or −1 for good for a berserker bred for it.
+ *              0 while the animal is held, since a unicorn in a block of ice
+ *              is not raging at anything.
  */
 
 import { g, program, uniforms, gl, time, width, height, Batch } from './gl.js';
@@ -177,7 +170,7 @@ struct U {
   float farBack, farFront;
   float hoofFarBack, hoofFarFront, hoofBack, hoofFront;
   float tail, tailU, mane, maneU, horn, eye, glint;
-  float cape, clasp;   // a mage's; solved for every animal, drawn for one
+  float cape, clasp, hat;   // a mage's; solved for every animal, drawn for one
 };
 
 U parts(vec2 p, float ph, float t, float fight){
@@ -218,6 +211,12 @@ U parts(vec2 p, float ph, float t, float fight){
 
   vec2 hb = hc + vec2(0.025, 0.07) * HEAD;
   u.horn = seg(q, hb, hb + vec2(0.07, 0.17) * HEAD, 0.022 * HEAD, 0.001);
+  // A mage's hat: a cone leaning back off the crown and a brim under it, in
+  // the head's own frame so it nods with every lunge. It sits behind the horn,
+  // which comes out through the front of it.
+  vec2 hh = hc + vec2(-0.045, 0.075) * HEAD;
+  u.hat = min(seg(q, hh, hh + vec2(-0.09, 0.27) * HEAD, 0.07 * HEAD, 0.002),
+              ell(q - hh, vec2(0.12, 0.024) * HEAD));
   vec2 ec = hc + vec2(0.045, 0.012) * HEAD;
   float er = 0.016 * HEAD;
   u.eye = length(q - ec) - er;
@@ -407,6 +406,8 @@ void main(){
 
   c = part(c, u.hoofFront, 0.0, hoofC, line);
   c = part(c, u.mane, ow * 0.7, hair(u.maneU, t + 2.0), line);
+  // The hat over the mane and under the horn, in the cape's colour.
+  if (mage > 0.5) c = part(c, u.hat, ow * 0.7, shade(u.hat, capeC, capeC * 0.4, rimC), line);
   c = part(c, u.horn, ow * 0.7, hornC, line);
   c = part(c, u.eye, 0.0, eyeC, line);
   c = part(c, u.glint, 0.0, vec3(1.0), line);

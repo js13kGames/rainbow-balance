@@ -8,8 +8,8 @@
  *
  * Instance data, six floats: x, y, size, age 0…1; side; u, a place along the
  * mane's hue sweep, or one of the flat colours below it: −1 the body colour,
- * −2 white, and then one for each of the three spells — −3 a frost, −4 a
- * smite, −5 a rage.
+ * −2 white, and then one for each of the four spells' lines — −3 a frost,
+ * −4 a smite, −5 a rage, −6 a turncoat.
  */
 
 import { g, program, uniforms, gl, time, width, height, Batch } from './gl.js';
@@ -121,19 +121,17 @@ export function shower(x, y, s) {
 }
 
 /**
- * A spell crosses the ground: frost laid the whole way from the caster's horn
- * to what it was aimed at, thickening where it lands. The freeze itself has
- * already happened — a spell does not travel and does not miss — so this is a
- * streak that appears at once and goes out in a third of a second, which is
- * what a bolt looks like anyway.
+ * A spell, as a line from the caster's horn to what it was aimed at, laid
+ * down whole and left where it is to fade. The spell itself has already
+ * landed — a spell does not travel and does not miss — so nothing in its
+ * picture moves.
  * @param {number} x0 the horn
  * @param {number} y0
  * @param {number} x1 what it is aimed at
  * @param {number} y1
  * @param {number} s the caster's size
- * @param {number} kind which spell: 0 a frost, 1 a smite, 2 a rage. They are
- *   laid the same way and only the colour of them differs — a hold, a blow
- *   and a blessing all being one streak from a horn to something.
+ * @param {number} kind which spell: 0 a frost, 1 a smite, 2 a rage, 3 a
+ *   turncoat. They are laid the same way and only the colour differs.
  */
 export function bolt(x0, y0, x1, y1, s, kind) {
     const k = s / NEAR_S;
