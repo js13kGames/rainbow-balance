@@ -237,20 +237,21 @@ document.body.innerHTML =
     + 'font:600 15px system-ui,sans-serif;color:#fff;text-shadow:0 1px 2px #000}'
     + '#p b::before{content:attr(data-n);right:5px}'
     + '#p u{left:5px;opacity:.6;text-decoration:none}'
-    // The research panel is for the dev page only. In the build __DEBUG__ is
-    // false, so this styling and the div below fold away with it.
-    + (__DEBUG__ ? '#r{position:fixed;left:12px;bottom:12px;display:grid;'
-    + 'grid-template-columns:repeat(5,32px) auto;gap:4px 5px;align-items:center;'
-    + 'font:15px system-ui,sans-serif;color:#fff;text-shadow:0 1px 2px #000c;'
+    // The research panels: the sunicorns' bottom left, the rainicorns' bottom
+    // right, each mirrored so its powers sit on the inside of its bars.
+    + '#r,#q{position:fixed;bottom:12px;display:grid;gap:8px 10px;align-items:center;'
+    + 'font:30px system-ui,sans-serif;color:#fff;text-shadow:0 2px 4px #000c;'
     + 'user-select:none;pointer-events:none}'
-    + '#r u{text-decoration:none;text-align:center;opacity:.75}'
-    + '#r i{height:8px;border-radius:4px;background:#fff2}'
-    + '#r b{letter-spacing:3px;padding-left:4px}' : '')
+    + '#r{left:12px;grid-template-columns:repeat(5,64px) auto}'
+    + '#q{right:12px;grid-template-columns:auto repeat(5,64px)}'
+    + '#r u,#q u{text-decoration:none;text-align:center;opacity:.75}'
+    + '#r i,#q i{height:16px;border-radius:8px;background:#fff2}'
+    + '#r b,#q b{letter-spacing:6px}#r b{padding-left:8px}#q b{padding-right:8px;text-align:right}'
     + '</style>'
     + '<canvas id=c></canvas><div id=t></div><div id=u></div>'
     + '<div id=p>' + HANDS.map((g, i) => `<b><u>${i + 1}</u>${g}</b>`).join('')
     + '</div><i id=m>\ud83d\udd0a</i>'
-    + (__DEBUG__ ? '<div id=r></div>' : '') + '<div id=o></div>';
+    + '<div id=r></div><div id=q></div><div id=o></div>';
 
 // --- the clock --------------------------------------------------------------
 
@@ -320,10 +321,11 @@ function showClock() {
 // --- what the two sides have learned ----------------------------------------
 
 /**
- * The panel, bottom left: a row for each side, five bars of how far it has
- * got in each of the five areas, and the powers it has bought at the end of
- * the row. It is on the dev page only and the release build leaves all of it
- * out: it is for reading the tree while tuning it, not for the player.
+ * Two panels, one a side: the sunicorns' bottom left and the rainicorns'
+ * bottom right. Each has five bars of how far the side has got in each of the
+ * five areas, and the powers it has bought on the inside of them: after the
+ * bars and reading left to right for the sunicorns, before them and reading
+ * right to left for the rainicorns, so both start from the bars.
  *
  * The glyphs across the top are the areas in sim.js's own order — how fast it
  * walks, how fast it swings, how far it sees, how far it reaches, how fast
@@ -339,15 +341,15 @@ const POWERS = ['\u2744\ufe0f', '\u{1F525}', '\u2728', '\u{1F977}', '\u{1F621}',
 /** The claim bars' yellow and blue, so a row is read without a label. */
 const STONE = ['#ffd61f', '#387aff'];
 
+const sunPanel = /** @type {HTMLElement} */ (document.getElementById('r'));
+const rainPanel = /** @type {HTMLElement} */ (document.getElementById('q'));
+const glyphs = AREAS.map((g) => `<u>${g}</u>`).join(''), bars = '<i></i>'.repeat(5);
+sunPanel.innerHTML = glyphs + '<u></u>' + bars + '<b></b>';
+rainPanel.innerHTML = '<u></u>' + glyphs + '<b></b>' + bars;
 /** @type {HTMLElement[]} */
-let pips = [], learned = [];
-if (__DEBUG__) {
-    const board = /** @type {HTMLElement} */ (document.getElementById('r'));
-    board.innerHTML = AREAS.map((g) => `<u>${g}</u>`).join('') + '<u></u>'
-        + '<i></i><i></i><i></i><i></i><i></i><b></b>'.repeat(2);
-    pips = [...board.querySelectorAll('i')];
-    learned = [...board.querySelectorAll('b')];
-}
+const pips = [...sunPanel.querySelectorAll('i'), ...rainPanel.querySelectorAll('i')];
+/** @type {HTMLElement[]} */
+const learned = [sunPanel.querySelector('b'), rainPanel.querySelector('b')];
 
 let _panel = '';
 
@@ -368,7 +370,9 @@ function showTech() {
             pips[s * 5 + i].style.background = `linear-gradient(90deg,${STONE[s]} `
                 + `${Math.sqrt(p / sim.FULL) * 100}%,#fff2 0)`;
         });
-        learned[s].textContent = POWERS.filter((_, i) => t._got >> i & 1).join('');
+        // Right to left for the rainicorns, so the first learned is nearest the bars.
+        const got = POWERS.filter((_, i) => t._got >> i & 1);
+        learned[s].textContent = (s ? got.reverse() : got).join('');
     });
 }
 
@@ -620,7 +624,7 @@ if (!initGl(canvas)) {
         resize(canvas);
         drawScene(state._balance);
         showClock();
-        if (__DEBUG__) showTech();
+        showTech();
         // The hands fill on the game's clock, not the wall's, so pausing
         // pauses them and running fast fills them fast — the same second of
         // play costs the same second of recharge however it is watched.
