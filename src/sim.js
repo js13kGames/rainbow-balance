@@ -261,7 +261,7 @@ const LUNGE = 6.2832;
  * castle standing empty for whoever comes back for it.
  */
 export const CAP = 20;
-const CAP_R = 3.126;
+const CAP_R = 4.689;
 /** Points a recruit adds a second claiming, and takes off a held castle. */
 const TAKE = 0.75, BREAK = 1.5;
 /**
