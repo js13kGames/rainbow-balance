@@ -230,7 +230,7 @@ the same second of recharge however it is watched.
 Everything the tree does is on screen, because a player asked to counter it
 and not shown it is being asked to guess.
 
-- **The panel**, bottom left (`src/main.js:199`): a row a side in that side's
+- **The panel**, bottom left, on the dev page only — the release build leaves it out (`src/main.js`): a row a side in that side's
   stone — sandstone `#ffcf6b`, obsidian `#b48ce8` — five bars of how far it
   has got in each area, and the powers it has bought at the end of the row.
   The bar is the *effect* (`sqrt(p / FULL)`), not the points; they are not the

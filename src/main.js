@@ -8,7 +8,7 @@
  *
  * The fight itself is sim.js: castles spawn fighters, fighters pair off and
  * fight horn to horn, both sides research as they go, and balance is who has
- * more left. What is here is the loop, the page, the clock, the panel of what
+ * more on the field and more coming to it. What is here is the loop, the page, the clock, the panel of what
  * the two sides have learned, the drawing order and the player's one verb.
  */
 
@@ -192,7 +192,10 @@ document.body.innerHTML =
     + '#o{position:fixed;inset:0;display:none;place-content:center;text-align:center;'
     + 'color:#fff;font:700 64px/1.3 system-ui,sans-serif;text-shadow:0 2px 8px #000e;'
     + 'background:#0006;cursor:pointer}#o i,#o b{display:block;font-style:normal}'
-    + '#o i{font-size:96px;margin:.08em 0}#o b{font-size:28px;font-weight:400;opacity:.8}'
+    + '#o i{font-size:96px;margin:.08em 0}#o b{font-size:28px;font-weight:400;opacity:.8;'
+    + 'max-width:min(30em,88vw);margin:auto}'
+    + '#o button{font:700 30px system-ui,sans-serif;margin:1.2em auto 0;padding:.4em 1.8em;'
+    + 'border:0;border-radius:14px;background:#fff;color:#223;cursor:pointer}'
     + '#p{position:fixed;left:12px;top:12px;display:flex;gap:10px}'
     + '#m{position:fixed;right:12px;bottom:12px}'
     + '#p b,#m{width:64px;height:64px;display:grid;place-content:center;font-size:34px;'
@@ -206,17 +209,20 @@ document.body.innerHTML =
     + 'font:600 15px system-ui,sans-serif;color:#fff;text-shadow:0 1px 2px #000}'
     + '#p b::before{content:attr(data-n);right:5px}'
     + '#p u{left:5px;opacity:.6;text-decoration:none}'
-    + '#r{position:fixed;left:12px;bottom:12px;display:grid;'
+    // The research panel is for the dev page only. In the build __DEBUG__ is
+    // false, so this styling and the div below fold away with it.
+    + (__DEBUG__ ? '#r{position:fixed;left:12px;bottom:12px;display:grid;'
     + 'grid-template-columns:repeat(5,32px) auto;gap:4px 5px;align-items:center;'
     + 'font:15px system-ui,sans-serif;color:#fff;text-shadow:0 1px 2px #000c;'
     + 'user-select:none;pointer-events:none}'
     + '#r u{text-decoration:none;text-align:center;opacity:.75}'
     + '#r i{height:8px;border-radius:4px;background:#fff2}'
-    + '#r b{letter-spacing:3px;padding-left:4px}</style>'
+    + '#r b{letter-spacing:3px;padding-left:4px}' : '')
+    + '</style>'
     + '<canvas id=c></canvas><div id=t></div>'
     + '<div id=p>' + HANDS.map((g, i) => `<b><u>${i + 1}</u>${g}</b>`).join('')
     + '</div><i id=m>\ud83d\udd0a</i>'
-    + '<div id=r></div><div id=o></div>';
+    + (__DEBUG__ ? '<div id=r></div>' : '') + '<div id=o></div>';
 
 // --- the clock --------------------------------------------------------------
 
@@ -237,7 +243,18 @@ function formatClock(s) {
 }
 
 const over = /** @type {HTMLElement} */ (document.getElementById('o'));
-let _won = -2;
+let _won = -1;
+
+/**
+ * The longest run so far, in whole seconds of game time, kept in the browser.
+ * The player's whole job is holding the two sides level, so the score is how
+ * long the field held before one side took it. Storage can be refused — a
+ * private window, or a browser told to keep nothing — and then the best is
+ * this session's only, which is still worth showing.
+ */
+const BEST = 'rainbowbalance-best';
+let best = 0;
+try { best = +localStorage[BEST] || 0; } catch { /* nothing kept, nothing lost */ }
 
 /** The banner, once. A touch anywhere on it starts another run. */
 function showWinner() {
@@ -245,10 +262,20 @@ function showWinner() {
     _won = sim.winner;
     if (sim.winner < 0) { over.style.display = 'none'; return; }
     snd.over(sim.winner);
-    // The time on its own line rather than in a sentence: it grows a field
-    // at a time, and "in 4" reads no better than "in 1:22:45:11" would.
-    over.innerHTML = (sim.winner ? 'RAINICORNS' : 'SUNICORNS') + ' HOLD THE FIELD'
-        + `<i>${formatClock(state._elapsed)}</i><b>touch to begin again</b>`;
+    const t = state._elapsed | 0;
+    const side = sim.winner ? 'RAINICORNS' : 'SUNICORNS';
+    // A new best is the headline, and who won drops to the small line under
+    // the time: the player did not lose that run, they set a record with it.
+    // Otherwise the result leads and the best is there to aim at.
+    if (t > best) {
+        best = t;
+        try { localStorage[BEST] = t; } catch { /* kept for this session only */ }
+        over.innerHTML = `A NEW BEST<i>${formatClock(t)}</i>`
+            + `<b>${side.toLowerCase()} took the field · touch to begin again</b>`;
+    } else {
+        over.innerHTML = `${side} HOLD THE FIELD<i>${formatClock(t)}</i>`
+            + `<b>best ${formatClock(best)} · touch to begin again</b>`;
+    }
     over.style.display = 'grid';
 }
 
@@ -267,8 +294,8 @@ function showClock() {
 /**
  * The panel, bottom left: a row for each side, five bars of how far it has
  * got in each of the five areas, and the powers it has bought at the end of
- * the row. A player who cannot see this is being asked to guess why the side
- * that was level a minute ago is walking through the other one.
+ * the row. It is on the dev page only and the release build leaves all of it
+ * out: it is for reading the tree while tuning it, not for the player.
  *
  * The glyphs across the top are the areas in sim.js's own order — how fast it
  * walks, how fast it swings, how far it sees, how far it reaches, how fast
@@ -284,11 +311,15 @@ const POWERS = ['\u2744\ufe0f', '\u{1F525}', '\u2728', '\u{1F977}', '\u{1F621}',
 /** Sandstone and obsidian, near enough that a row is read without a label. */
 const STONE = ['#ffcf6b', '#b48ce8'];
 
-const board = /** @type {HTMLElement} */ (document.getElementById('r'));
-board.innerHTML = AREAS.map((g) => `<u>${g}</u>`).join('') + '<u></u>'
-    + '<i></i><i></i><i></i><i></i><i></i><b></b>'.repeat(2);
-const pips = /** @type {HTMLElement[]} */ ([...board.querySelectorAll('i')]);
-const learned = /** @type {HTMLElement[]} */ ([...board.querySelectorAll('b')]);
+/** @type {HTMLElement[]} */
+let pips = [], learned = [];
+if (__DEBUG__) {
+    const board = /** @type {HTMLElement} */ (document.getElementById('r'));
+    board.innerHTML = AREAS.map((g) => `<u>${g}</u>`).join('') + '<u></u>'
+        + '<i></i><i></i><i></i><i></i><i></i><b></b>'.repeat(2);
+    pips = [...board.querySelectorAll('i')];
+    learned = [...board.querySelectorAll('b')];
+}
 
 let _panel = '';
 
@@ -429,8 +460,38 @@ let speed = 1;
 /** What to go back to when the pause comes off. */
 let played = 1;
 
+/**
+ * The start screen: the story in three sentences and a way in. It borrows the
+ * end-of-run banner's element and look. The fight waits behind it, paused,
+ * and Play — or Space or Enter — is the gesture the browser needs before it
+ * lets any sound out, so it boots the audio too. Shown once per page load,
+ * not after every run.
+ */
+let intro = true;
+speed = 0;
+function start() {
+    intro = false;
+    speed = played;
+    over.style.display = 'none';
+    over.onpointerdown = null;
+    snd.boot();
+}
+over.innerHTML = 'Rainbow Balance<b>For Millennia, the Sunicorns and the Rainicorns have been in '
+    + 'conflict. Each tries to destroy the other, but without both Sun and Rain there is no '
+    + 'Rainbow. Use your powers to keep both sides in balance as long as possible.</b>'
+    + '<button>Play</button>';
+over.style.display = 'grid';
+// A touch on the words is not a touch on the field under them.
+over.onpointerdown = (e) => e.stopPropagation();
+/** @type {HTMLElement} */ (over.querySelector('button')).onclick = start;
+
 addEventListener('keydown', (e) => {
     const k = e.key;
+    // Behind the start screen the only keys are the ones that start.
+    if (intro) {
+        if (k === ' ' || k === 'Enter') { start(); e.preventDefault(); }
+        return;
+    }
     // 1 to 5 choose a hand, left to right, which is the order they are in on
     // screen and what the small number in the corner of each button says.
     // Choosing is all it does: the hand still has to be used on something, and
@@ -493,7 +554,7 @@ if (!initGl(canvas)) {
         resize(canvas);
         drawScene(state._balance);
         showClock();
-        showTech();
+        if (__DEBUG__) showTech();
         // The hands fill on the game's clock, not the wall's, so pausing
         // pauses them and running fast fills them fast — the same second of
         // play costs the same second of recharge however it is watched.
