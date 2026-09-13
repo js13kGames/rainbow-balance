@@ -565,25 +565,25 @@ function units() {
             `balance ${sim.balance.toFixed(3)} against ${half.toFixed(3)}`);
     }
 
-    // Castles arrive over the first minute and a half: the foreground middle
-    // at 30 seconds, the far middle at 60, the two side castles together at
-    // 90. Until then a castle is not on the field at all.
+    // Castles arrive over the first two minutes: the foreground middle at 30
+    // seconds, the far middle at 60, the two side castles together at 90, and
+    // the centre between the two middles at 120. Until then it is not there.
     {
         sim.reset(7);
         const up = () => sim.castles.map((c) => (c._up > 0 ? 1 : 0)).join('');
         const at0 = up(), seen = [], when = {};
-        for (let i = 1; i <= 60 * 95; i++) {
+        for (let i = 1; i <= 60 * 125; i++) {
             for (const c of sim.castles) c._t = 1e9;
             sim.step(STEP);
             for (const c of sim.arrived) { const k = sim.castles.indexOf(c); seen.push(k); when[k] = i * STEP; }
             sim.arrived.length = 0;
         }
-        ok('a run starts with only the two home castles', at0 === '101000', `castles up: ${at0}`);
+        ok('a run starts with only the two home castles', at0 === '1010000', `castles up: ${at0}`);
         ok('and the rest arrive on time, once each',
-            seen.join(',') === '3,1,4,5' && Math.abs(when[3] - 30) < 0.05 && Math.abs(when[1] - 60) < 0.05
-            && Math.abs(when[4] - 90) < 0.05 && Math.abs(when[5] - 90) < 0.05,
+            seen.join(',') === '3,1,4,5,6' && Math.abs(when[3] - 30) < 0.05 && Math.abs(when[1] - 60) < 0.05
+            && Math.abs(when[4] - 90) < 0.05 && Math.abs(when[5] - 90) < 0.05 && Math.abs(when[6] - 120) < 0.05,
             `arrived ${seen.join(',')} at ${Object.entries(when).map(([k, v]) => `${k}@${v.toFixed(2)}`).join(' ')}`);
-        ok('and each has faded all the way in', up() === '111111' && sim.castles.every((c) => c._up === 1),
+        ok('and each has faded all the way in', up() === '1111111' && sim.castles.every((c) => c._up === 1),
             sim.castles.map((c) => c._up.toFixed(2)).join(' '));
     }
     {
