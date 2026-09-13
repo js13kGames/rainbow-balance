@@ -206,6 +206,12 @@ lockout, one independent counter each.
 | berserk 🔥 | 2 | 12s | roaring, for the life of the animal |
 | turncoat 🔄 | 1 | 20s | changes its side, keeping everything |
 
+A hand only appears once **either side** has learned its power: freeze with
+freeze, ninja with ninja, berserk with the bred berserker, turncoat with
+turncoat. The row grows with the run, and a new run starts it over. Sparklify
+is always there, since a run starts before anyone has learned anything and it
+is the one intervention the balance was tuned against.
+
 A charge is **a float**, and that one number is the whole of the state: its
 whole part is how many uses are in hand, and its fraction is how far along the
 next one is, which is the bar across the foot of the button. A hand under a
@@ -241,12 +247,14 @@ and not shown it is being asked to guess.
   thing on the field that says the run just got harder wants saying somewhere
   other than a corner.
 - **A berserker** beats red and its neck is going at twice the speed. The tint
-  rides the *negative* end of the float the frost is at the positive end of,
-  the way `aState.w` already carries the cape on a sign. Frost wins the float
-  when a berserker is frozen: an animal that cannot move is the more important
-  of the two to show.
-- **Three colours of streak**: frost blue for a hold, gold for a bolt, red for
-  a rage. `_u` −3, −4, −5 in `sparks.js:155`.
+  rides the negative end of a float of its own, the way `aState.w` already
+  carries the cape on a sign. A frozen berserker shows only the ice: an animal
+  that cannot move is the more important of the two to show.
+- **Four colours of line**, each drawn from the caster's horn to its victim
+  and left to fade where it is, since nothing about a spell travels: frost
+  blue for a hold, gold for a bolt, red for a rage, purple for a turncoat.
+  `_u` −3 to −6 in `sparks.js`. Each spell has its own sound too, and so
+  does each of the player's hands.
 
 ## What it did to the game
 

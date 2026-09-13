@@ -133,7 +133,7 @@ function smite(cx, cy) {
     // Not to the herd's: the herd walks in world units, and what the player
     // is aiming at is the picture, which is where sim.strike() meets it.
     const x = (cx - innerWidth / 2) / innerHeight, y = (innerHeight / 2 - cy) / innerHeight;
-    if (charge[power] < 1) return;
+    if (charge[power] < 1 || !known(power)) return;
     const un = sim.strike(x, y, power);
     // Where it landed, if it landed on anything: an empty field makes no
     // noise, which is also how the player learns there was nothing there.
@@ -142,7 +142,9 @@ function smite(cx, cy) {
     if (!un) return;
     charge[power]--;
     paintHands();
-    (power === 1 ? snd.ice : snd.smite)(sim.project(un._x, un._y, un._s));
+    // Every hand its own sound: the first two their own, the rest from hand().
+    const at = sim.project(un._x, un._y, un._s);
+    if (power > 1) snd.hand(at, power); else (power ? snd.ice : snd.smite)(at);
 }
 
 /** How many powers each side had last step, so a new one can be noticed. */
@@ -175,6 +177,17 @@ export function reset() {
  */
 const HANDS = ['\u2728', '\u2744\ufe0f', '\u{1F977}', '\u{1F525}', '\u{1F504}'];
 const HAND_MAX = [1, 3, 2, 2, 1];
+/**
+ * Which power in sim.js's tree each hand is, by its bit, or −1 for none. A
+ * hand is only on offer once either side has learned that power, so the row
+ * of buttons grows with the run. Sparklify is the exception and is always
+ * there: a run starts before anyone has learned anything, and it is the one
+ * intervention the balance was tuned against.
+ */
+const HAND_POWER = [-1, 0, 3, 1, 5];
+/** Whether a hand is on offer yet. @param {number} i */
+const known = (i) => HAND_POWER[i] < 0
+    || ((sim.tech[0]._got | sim.tech[1]._got) >> HAND_POWER[i] & 1) === 1;
 const HAND_SECS = [1.5, 5, 12, 12, 20];
 const charge = HAND_MAX.slice();
 
@@ -189,6 +202,9 @@ document.body.innerHTML =
     + 'canvas{display:block;width:100%;height:100%;touch-action:none}'
     + '#t{position:fixed;top:8px;right:12px;color:#fff;font:600 54px/1 system-ui,sans-serif;'
     + 'text-shadow:0 1px 3px #000c}'
+    + '#u{position:fixed;top:92px;left:0;right:0;text-align:center;color:#fff;'
+    + 'font:700 40px/1.2 system-ui,sans-serif;text-shadow:0 2px 8px #000e;'
+    + 'pointer-events:none;display:none}'
     + '#o{position:fixed;inset:0;display:none;place-content:center;text-align:center;'
     + 'color:#fff;font:700 64px/1.3 system-ui,sans-serif;text-shadow:0 2px 8px #000e;'
     + 'background:#0006;cursor:pointer}#o i,#o b{display:block;font-style:normal}'
@@ -219,7 +235,7 @@ document.body.innerHTML =
     + '#r i{height:8px;border-radius:4px;background:#fff2}'
     + '#r b{letter-spacing:3px;padding-left:4px}' : '')
     + '</style>'
-    + '<canvas id=c></canvas><div id=t></div>'
+    + '<canvas id=c></canvas><div id=t></div><div id=u></div>'
     + '<div id=p>' + HANDS.map((g, i) => `<b><u>${i + 1}</u>${g}</b>`).join('')
     + '</div><i id=m>\ud83d\udd0a</i>'
     + (__DEBUG__ ? '<div id=r></div>' : '') + '<div id=o></div>';
@@ -416,14 +432,45 @@ const hands = /** @type {HTMLElement[]} */ ([...document.querySelectorAll('#p b'
  * across the foot of every button is the fraction of the next charge, which
  * is the same number the button spends, read after the decimal point.
  */
+/** What each hand is called on the banner that says it has arrived. */
+const HAND_NAME = ['', 'Freeze', 'Ninja', 'Berserk', 'Turncoat'];
+const banner = /** @type {HTMLElement} */ (document.getElementById('u'));
+/** Which hands were on offer at the last paint, a bit apiece. */
+let _known = 1, _bannerT = 0;
+
+/**
+ * A hand has just come on offer: say so across the top of the screen for a
+ * couple of seconds, and play the sound it makes when it is used, so the
+ * player hears what it is before they first reach for it.
+ * @param {number} i
+ */
+function unlocked(i) {
+    banner.textContent = `${HAND_NAME[i]} Power Unlocked!`;
+    banner.style.display = 'block';
+    clearTimeout(_bannerT);
+    _bannerT = setTimeout(() => { banner.style.display = 'none'; }, 2600);
+    const at = [0, 0.2, 0.15];
+    if (i > 1) snd.hand(at, i); else snd.ice(at);
+}
+
 function paintHands() {
+    // A new run forgets what was learned, and a hand chosen last run may not
+    // be on offer in this one.
+    if (!known(power)) power = 0;
+    let mask = 0;
     hands.forEach((el, i) => {
         const c = charge[i];
+        if (known(i)) mask |= 1 << i;
+        el.style.display = known(i) ? '' : 'none';
         el.className = (i === power ? 'on' : '') + (c < 1 ? ' no' : '');
         el.style.setProperty('--f', `${(c % 1) * 100}%`);
         // The count only means anything where more than one can be held.
         el.dataset.n = HAND_MAX[i] > 1 ? `${c | 0}` : '';
     });
+    // Only what has newly arrived, and the last of them if two came at once.
+    const fresh = mask & ~_known;
+    _known = mask;
+    if (fresh) unlocked(31 - Math.clz32(fresh));
 }
 hands.forEach((el, i) => {
     el.onpointerdown = (e) => {
@@ -497,7 +544,7 @@ addEventListener('keydown', (e) => {
     // Choosing is all it does: the hand still has to be used on something, and
     // the pointer is what says where.
     const h = k.length === 1 ? k - 1 : -1;
-    if (h >= 0 && h < HANDS.length) { power = h; paintHands(); }
+    if (h >= 0 && h < HANDS.length && known(h)) { power = h; paintHands(); }
     // f faster a step at a time, s slower the same way down to a stop, and
     // space is play or pause at whatever pace was last set.
     else if (k === 'f' || k === 'F') speed = Math.max(speed, 1) + 1;
