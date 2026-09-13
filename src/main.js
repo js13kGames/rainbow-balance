@@ -225,9 +225,9 @@ document.body.innerHTML =
     // The mute button sits just under the clock, top right.
     + '#m{position:fixed;right:12px;top:70px}'
     + '#p b,#m{width:64px;height:64px;display:grid;place-content:center;font-size:34px;'
-    + 'border-radius:14px;background:#0006;border:3px solid #fff3;cursor:pointer;'
+    + 'border-radius:14px;background:#000;border:3px solid #fff3;cursor:pointer;'
     + 'user-select:none}'
-    + '#p b.on{background:#fff3;border-color:#fff}'
+    + '#p b.on{background:#777;border-color:#fff}'
     + '#p b{position:relative;overflow:hidden}#p b.no{opacity:.35}'
     + '#p b::after{content:"";position:absolute;left:0;bottom:0;height:5px;'
     + 'width:var(--f);background:#8cf}'
