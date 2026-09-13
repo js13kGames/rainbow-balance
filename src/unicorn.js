@@ -278,7 +278,9 @@ U parts(vec2 p, float ph, float t, float fight){
   // the hem, which is the only end of a cape that is free to move.
   float fly = 0.3 + 0.7 * stride * (0.5 + 0.5 * sin(ph + 0.9));
   vec2 kb = vec2(L * 0.42, H * 0.85);
-  vec2 kh = vec2(-L * 1.3, -H * 1.5) + vec2(-0.05, 0.07) * fly;
+  // The hem runs back along the top of the body to the rump rather than down
+  // to the ground, so the cape lies across the back and hangs over the flank.
+  vec2 kh = vec2(-L * 1.15, H * 0.2) + vec2(-0.05, 0.05) * fly;
   // In the cape's own frame: kq.x runs down the drape from the clasp, kq.y
   // across it. That is what gives a hem — a straight cut across the sheet —
   // where a capsule would give a round end and the animal would look like it
