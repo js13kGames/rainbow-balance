@@ -100,7 +100,9 @@ function step(dt) {
         // camera has said how big that is.
         const [ax, ay, as] = sim.project(c._x, c._y, c._s);
         const [bx, by, bs] = sim.project(c._tx, c._ty, c._ts);
-        bolt(ax, ay + as, bx, by + bs * 0.6, as, c._k);
+        // From the horn tip as it is with the neck down: forward of the body
+        // by the caster's facing, and at about head height.
+        bolt(ax + c._f * as * 0.86, ay + as * 0.53, bx, by + bs * 0.6, as, c._k);
         snd.cast([ax, ay, as], c._k);
     }
     sim.casts.length = 0;

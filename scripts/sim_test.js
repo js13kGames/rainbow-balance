@@ -2284,6 +2284,25 @@ function techTree() {
             `${m.mage} capes, ${m.ber} berserkers, ${m.nin} ninjas out of ${m.all}`);
     }
 
+    // Casting, a wizard turns to its mark and lowers its neck to point the horn.
+    {
+        const [w] = stage([
+            { _x: 0, _y: 18.61, _side: 0, _mage: true, _cast: 0, _face: -1 },
+            { _x: 3.5, _y: 18.61, _side: 1, _hp: T.HP, _max: T.HP },
+        ]);
+        powers(0, 0);
+        pinned(1);
+        const cast = sim.casts.length === 1 && sim.casts[0]._f === 1;
+        sim.casts.length = 0;
+        pinned(18);
+        const lunge = w._fight * (0.5 - 0.5 * Math.cos(w._ph));
+        ok('a wizard casting faces its mark and lowers its neck',
+            cast && w._bow > 0 && lunge > 0.8 && w._face === 1,
+            `cast facing right ${cast}, bow ${w._bow.toFixed(2)}, lunge ${lunge.toFixed(2)}, facing ${w._face}`);
+        pinned(60);
+        ok('and then lifts it again', w._bow === 0, `bow ${w._bow.toFixed(2)}`);
+    }
+
     // Turncoat: the enemy's best animal walks back at them.
     {
         const [w, e] = stage([

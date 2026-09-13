@@ -481,6 +481,8 @@ const FURY = 2;
  * @property {number} _lane its own depth to walk a castle down at, so that a
  *   column marching on one arrives on a front rather than in single file
  * @property {number} _held seconds of the hold left on it, 0 when free
+ * @property {number} _bow seconds left of the casting pose: the neck down and
+ *   the horn pointed at what was cast at
  * @property {number} _full how long the hold was set for, which is what its
  *   block of ice melts against: twenty seconds from the player's hand, FROST
  *   seconds from a wizard's frost
@@ -731,6 +733,7 @@ function spawn(castle) {
         _mage: mage,
         _cast: COOL,
         _rage: 0,
+        _bow: 0,
         _ber: ber,
         _nin: nin,
     };
@@ -1311,6 +1314,9 @@ function decide(dt) {
                 else if (friend) { at = friend; k = 2; }
                 if (at) {
                     un._cast = COOL;
+                    // It turns to its mark and lowers its neck to point the horn.
+                    un._bow = 0.5;
+                    un._face = at._x > un._x ? 1 : -1;
                     if (k === 3) turn(at, un._side);
                     else if (k === 1) wound(un, at, SMITE);
                     else if (k === 2) at._rage = RAGE;
@@ -1323,7 +1329,7 @@ function decide(dt) {
                     casts.push({
                         _x: un._x, _y: un._y, _s: un._s,
                         _tx: at._x, _ty: at._y, _ts: at._s,
-                        _k: k,
+                        _k: k, _f: un._face,
                     });
                 }
             }
@@ -1352,6 +1358,15 @@ function decide(dt) {
         // nowhere, and it should be standing there like anything else that
         // has arrived.
         const still = !fighting && arrived;
+        if (un._bow > 0) {
+            // Casting: feet planted and the neck down at the bottom of a
+            // lunge, held for a moment before the pose eases back.
+            un._bow = Math.max(0, un._bow - dt);
+            un._fight += (1 - un._fight) * Math.min(1, dt * 12);
+            const ph = (un._ph % 6.2832 + 6.2832) % 6.2832;
+            un._ph = ph + (3.1416 - ph) * Math.min(1, dt * 12);
+            continue;
+        }
         if (!still && Math.abs(dx) > 0.01) un._face = dx > 0 ? 1 : -1;
         un._fight += ((fighting || still ? 1 : 0) - un._fight) * Math.min(1, dt * 6);
         if (still) {
