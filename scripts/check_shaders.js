@@ -67,16 +67,16 @@ const INSTANCES = {
     // to reach all three and keep them apart while it does: the ice is drawn
     // over the whole animal, so the one case under a block has no cape and no
     // rage to hide. `rage` on a case is what asks for it.
-    unicorn: (c) => [0, -0.14, 0.62, c.uTime * 1.7, c.uBalance > 0 ? 1 : 0, 0.6, 0.45,
+    unicorn: (c) => [0, -0.14, 0.62, c.uT * 1.7, c.uB > 0 ? 1 : 0, 0.6, 0.45,
         c.spell > 0.8 ? 0.7 : 0,
-        c.uBalance ? Math.abs(c.uBalance) : -1,
+        c.uB ? Math.abs(c.uB) : -1,
         c.rage ? -c.rage : 0],
     // x, y; size; age; side; place on the mane's hue sweep, or one of the
     // flat colours behind it: −1 the body, −2 a promotion's white, and −3
     // to −6 the frost, smite, rage and turncoat lines. `hue` on
     // a case names one outright; the rest come off the balance.
-    sparks: (c) => [0, 0, 0.3, 0.3, c.uBalance > 0 ? 1 : 0,
-        c.hue ?? (c.uBalance < -0.5 ? -3 : c.uBalance > 0.5 ? -2 : 0.5)],
+    sparks: (c) => [0, 0, 0.3, 0.3, c.uB > 0 ? 1 : 0,
+        c.hue ?? (c.uB < -0.5 ? -3 : c.uB > 0.5 ? -2 : 0.5)],
 };
 
 /** Component count of each GLSL type an attribute can have. */
@@ -103,7 +103,7 @@ const attribsOf = (vs) =>
  * would otherwise never reach: a unicorn in a rage, and the spell colours
  * that are not the frost.
  *
- * uCastle is the castle pass's: where one stands, on the screen and through
+ * uC is the castle pass's: where one stands, on the screen and through
  * the same camera the game puts it through, the stone of whoever holds it,
  * and how much of a claim there is on it. There are four castles — a home one
  * under each foot of the bow, one far up the field and one in the foreground
@@ -113,20 +113,20 @@ const attribsOf = (vs) =>
  */
 const CASES = [
     // The left foot of the bow, polished white, held outright.
-    { uTime: 3.0, uBalance: 0.0, spell: 1.0, uCastle: [-0.6825, -0.1545, 0, 1] },
+    { uT: 3.0, uB: 0.0, spell: 1.0, uC: [-0.6825, -0.1545, 0, 1], uA: [-1, 0, 1, 1] },
     // The right foot, obsidian, held outright.
-    { uTime: 3.0, uBalance: 0.75, spell: 0.35, uCastle: [0.6825, -0.1545, 1, 1] },
+    { uT: 3.0, uB: 0.75, spell: 0.35, uC: [0.6825, -0.1545, 1, 1], uA: [-1, 1, 1, 1] },
     // Far up the field, nobody's: the smallest a castle ever draws. And the
     // unicorn in this one is in a rage — a case with no ice over it to hide
     // the tint.
-    { uTime: 7.5, uBalance: -0.4, spell: 0.7, rage: 0.8, hue: -4, uCastle: [0, 0.02, 0, 0] },
+    { uT: 7.5, uB: -0.4, spell: 0.7, rage: 0.8, hue: -4, uC: [0, 0.02, 0, 0], uA: [-1, -1, 0.5, 1] },
     // The same, half way to being someone's.
-    { uTime: 11.0, uBalance: 1.0, spell: 0.0, uCastle: [0, 0.02, 1, 0.5] },
+    { uT: 11.0, uB: 1.0, spell: 0.0, uC: [0, 0.02, 1, 0.5], uA: [0.5, 1, 0.5, 1] },
     // The foreground castle, the nearest and so the biggest, part claimed.
-    { uTime: 5.0, uBalance: 0.2, spell: 0.9, uCastle: [0, -0.3134, 1, 0.5] },
+    { uT: 5.0, uB: 0.2, spell: 0.9, uC: [0, -0.3134, 1, 0.5], uA: [0.5, 1, 1.45, 0.5] },
     // A foot castle part way through changing hands, with a rage spell's
     // spark in it: the last of the three colours a spell is drawn in.
-    { uTime: 0.25, uBalance: -1.0, spell: 0.5, hue: -5, uCastle: [-0.6825, -0.1545, 0, 0.5] },
+    { uT: 0.25, uB: -1.0, spell: 0.5, hue: -5, uC: [-0.6825, -0.1545, 0, 0.5], uA: [0.5, 0, 1, 1] },
 ];
 
 async function loadPuppeteer() {
@@ -253,11 +253,19 @@ const results = await page.evaluate(async (pairs, cases, tolerance, w, h) => {
             else if (v.length === 3) gl.uniform3f(l, v[0], v[1], v[2]);
             else gl.uniform4f(l, v[0], v[1], v[2], v[3]);
         };
-        set('uRes', [w, h]);
+        set('uR', [w, h]);
         // Only the uniforms. The rest of a case is there to vary the instance
         // samples, and handing a shader a name it never declared is how the
         // last one outlived every shader that read it.
         for (const k in values) if (k[0] === 'u') set(k, values[k]);
+        // Every uniform the program reads must have been set. A case whose
+        // names no longer match the shader's renders with all of them at zero,
+        // and source and minified then agree on a blank screen — which is what
+        // this check did, unnoticed, from the two-character rename until now.
+        for (let i = 0, n = gl.getProgramParameter(prog, gl.ACTIVE_UNIFORMS); i < n; i++) {
+            const name = gl.getActiveUniform(prog, i).name;
+            if (name !== 'uR' && !(name in values)) throw new Error(`uniform ${name} is never set`);
+        }
         gl.viewport(0, 0, w, h);
         // A shader that discards leaves whatever the last draw wrote, and the
         // two programs are rendered one after the other into the same buffer.
