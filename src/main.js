@@ -288,10 +288,10 @@ function showWinner() {
         best = t;
         try { localStorage[BEST] = t; } catch { /* kept for this session only */ }
         over.innerHTML = `A NEW BEST<i>${formatClock(t)}</i>`
-            + `<b>${side.toLowerCase()} took the field · touch to begin again</b>`;
+            + `<b>${side.toLowerCase()} took the field</b><button>Play</button>`;
     } else {
         over.innerHTML = `${side} HOLD THE FIELD<i>${formatClock(t)}</i>`
-            + `<b>best ${formatClock(best)} · touch to begin again</b>`;
+            + `<b>best ${formatClock(best)}</b><button>Play</button>`;
     }
     over.style.display = 'grid';
 }
