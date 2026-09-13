@@ -308,8 +308,8 @@ function showClock() {
 // text-presentation glyph in a row of emoji reads as a missing character.
 const AREAS = ['\u{1F3C3}', '\u2694\ufe0f', '\u{1F441}\ufe0f', '\u2194\ufe0f', '\u{1F3F0}'];
 const POWERS = ['\u2744\ufe0f', '\u{1F525}', '\u2728', '\u{1F977}', '\u{1F621}', '\u{1F504}'];
-/** Sandstone and obsidian, near enough that a row is read without a label. */
-const STONE = ['#ffcf6b', '#b48ce8'];
+/** The claim bars' yellow and blue, so a row is read without a label. */
+const STONE = ['#ffd61f', '#387aff'];
 
 /** @type {HTMLElement[]} */
 let pips = [], learned = [];

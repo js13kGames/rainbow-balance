@@ -115,7 +115,7 @@ const attribsOf = (vs) =>
  * hands are each a branch of their own in the shader besides.
  */
 const CASES = [
-    // The left foot of the bow, sandstone, held outright.
+    // The left foot of the bow, polished white, held outright.
     { uTime: 3.0, uBalance: 0.0, spell: 1.0, uCastle: [-0.6825, -0.1545, 0, 1] },
     // The right foot, obsidian, held outright.
     { uTime: 3.0, uBalance: 0.75, spell: 0.35, uCastle: [0.6825, -0.1545, 1, 1] },

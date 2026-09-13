@@ -474,7 +474,7 @@ void main(){
  * A castle, as a pass of its own: main.js draws one per castle, in depth
  * order with the bow and the herd. uC says which and whose: where it
  * stands along the bow's foot line, the stone of whichever side holds it —
- * sandstone for the sunicorns, obsidian for the rainicorns — and how much
+ * polished white for the sunicorns, obsidian for the rainicorns — and how much
  * of a claim there is on it, which is how much of that stone shows. A castle
  * nobody holds is bare grey, so a castle changing hands can be read off the
  * field at a glance. Fragments that miss the castle, or that a hill is in
@@ -669,8 +669,9 @@ void main(){
       // shader else needs derivatives and this keeps it that way.
       float aa = 1.5 / uR.y;
       float fill = smoothstep(aa, -aa, bp.x - (uA.x * 2.0 - 1.0) * 0.075 * n);
+      // Grey for nobody, yellow for the sunicorns, blue for the rainicorns.
       vec3 col = uA.y < -0.5 ? vec3(0.62, 0.62, 0.66)
-               : uA.y < 0.5 ? vec3(1.00, 0.78, 0.35) : vec3(0.58, 0.58, 0.98);
+               : uA.y < 0.5 ? vec3(1.00, 0.84, 0.12) : vec3(0.22, 0.48, 1.00);
       bar = vec4(mix(vec3(0.05, 0.04, 0.08), col, fill), 1.0);
     }
   }
@@ -729,17 +730,19 @@ void main(){
   // the holder's stone has come in: one being taken bleaches as the claim
   // is broken and takes the other side's colour on as the new one is made.
   vec3 c = vec3(0.52, 0.52, 0.55) * light * base;
-  if (uC.z < 0.5) {
-    c = mix(c, vec3(0.93, 0.82, 0.62) * light * base, uC.w);
-  } else {
-    // Obsidian: almost no diffuse, so what reads is the sun's highlight,
-    // kept whatever the weather so the castle always looks polished, and
-    // the sky mirrored in it, strongest at grazing angles.
-    float spec = pow(max(dot(nor, normalize(sun_dir - rd)), 0.0), 40.0);
-    float fresnel = 0.15 + 0.85 * pow(1.0 - max(dot(nor, -rd), 0.0), 2.0);
-    c = mix(c, vec3(0.03, 0.03, 0.04) * light * base
-               + spec * vec3(0.9, 0.85, 0.75) + fresnel * sky * 0.8, uC.w);
-  }
+  // Both sides' stone is polished, and nobody's is not: the sun's highlight,
+  // kept whatever the weather, and the sky mirrored in it, strongest at
+  // grazing angles. It all comes in with the claim, so a castle being taken
+  // loses its shine as it bleaches to grey and gains the other side's.
+  float spec = pow(max(dot(nor, normalize(sun_dir - rd)), 0.0), 40.0);
+  float fresnel = 0.15 + 0.85 * pow(1.0 - max(dot(nor, -rd), 0.0), 2.0);
+  // White for the sunicorns, lit and mirroring a little of the sky so it
+  // stays white rather than going blue. Obsidian for the rainicorns, almost
+  // no diffuse, so what reads is the highlight and the mirror.
+  vec3 stone = uC.z < 0.5
+    ? vec3(0.86, 0.86, 0.90) * light * base + spec * vec3(1.0, 0.97, 0.90) + fresnel * sky * 0.3
+    : vec3(0.03, 0.03, 0.04) * light * base + spec * vec3(0.9, 0.85, 0.75) + fresnel * sky * 0.8;
+  c = mix(c, stone, uC.w);
   o = bar.a > 0.0 ? bar : vec4(mix(c, sky, clamp(tc * tc * FOG, 0.0, 1.0)), 1.0);
 }`;
 

@@ -165,9 +165,9 @@ recruits, the forward ground, and the denying of it — without being a second
 army on its own, and taking both is worth as much again as a home castle, which
 is the point: there are two of them, at opposite ends of the field, and a side
 cannot sit on both. All of that is on the field to read: a castle nobody holds
-is bare grey stone, and the claim on one is how much of its holder's sandstone
-or obsidian has come in, so a castle changing hands bleaches and then takes the
-other colour on. Taken, it goes up in the same white shower a promotion does.
+is matte grey stone, and the claim on one is how much of its holder's polished
+white or polished obsidian has come in, so a castle changing hands dulls to grey
+and then takes the other side's shine on. Taken, it goes up in the same white shower a promotion does.
 
 Where the two unclaimed castles stand is what makes the fight two-dimensional.
 One is most of the way back to the horizon and one is in the foreground, so
@@ -369,8 +369,8 @@ The shaders are handed the same number, so the clouds, the rain, the grass and
 the manes keep pace with the fight and stop with it. A paused frame is
 identical to the one before it, down to the pixel.
 
-A claim being made or broken shows as a bar over the castle, in the colour of
-whoever is making it. When one side holds every castle the run is over: the
+A claim being made or broken shows as a bar over the castle, yellow for the
+sunicorns and blue for the rainicorns. When one side holds every castle the run is over: the
 field stops where it stands, the clock holds at the time it took, and a touch
 begins another.
 
@@ -419,8 +419,8 @@ Voronoi-blade march, both after David Hoskins'
 nothing is copied from it, and the blade march itself is gone: the blade field
 is sampled once as a texture on the ground. Rain falls under the clouds:
 that began as a bug in how the horizon sky was sampled and was kept. A
-castle stands at each foot of the bow, the sunicorns' in sandstone and the
-rainicorns' in obsidian, and a third far up the field between them in
+castle stands at each foot of the bow, the sunicorns' in polished white and the
+rainicorns' in polished obsidian, and a third far up the field between them in
 whatever stone belongs to whoever holds it: one signed distance field,
 marched only inside its bounding sphere, drawn once per castle at the
 position the simulation hands it — x across and y for depth, in the herd's
