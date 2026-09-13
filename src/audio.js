@@ -36,6 +36,13 @@ import { NEAR_S } from './sim.js';
 
 /** @type {AudioContext} */
 let ctx;
+/**
+ * The soundtrack, switched off for now and kept. Off, the drone is never built
+ * and the tune is never written, and the minifier takes both out of the build;
+ * every sound effect, the jingle for a power bought and the cadence at the end
+ * of a run are untouched. Turn it back on here and nothing else has to change.
+ */
+const MUSIC = false;
 /** Everything the field makes, and everything the music makes. */
 let sfxBus, musicBus, master;
 /** Two seconds of white noise, looped and started at a random offset. */
@@ -121,20 +128,22 @@ export function boot() {
     // The drone: a sub, the root and the fifth. It never stops and it is
     // never scheduled — the whole of what it does is done by moving three
     // parameters at it, once a frame, off the balance.
-    padCut = ctx.createBiquadFilter();
-    padCut.frequency.value = 700;
-    padGain = ctx.createGain();
-    padGain.gain.value = 0;
-    padPan = ctx.createStereoPanner();
-    padCut.connect(padGain).connect(padPan).connect(musicBus);
-    padOsc = [0.5, 1, 1.5].map((m) => {
-        const o = ctx.createOscillator();
-        o.type = 'sawtooth';
-        o.frequency.value = ROOT * m;
-        o.connect(padCut);
-        o.start();
-        return o;
-    });
+    if (MUSIC) {
+        padCut = ctx.createBiquadFilter();
+        padCut.frequency.value = 700;
+        padGain = ctx.createGain();
+        padGain.gain.value = 0;
+        padPan = ctx.createStereoPanner();
+        padCut.connect(padGain).connect(padPan).connect(musicBus);
+        padOsc = [0.5, 1, 1.5].map((m) => {
+            const o = ctx.createOscillator();
+            o.type = 'sawtooth';
+            o.frequency.value = ROOT * m;
+            o.connect(padCut);
+            o.start();
+            return o;
+        });
+    }
     due = ctx.currentTime + 0.1;
 }
 
@@ -427,7 +436,7 @@ export function over(side) {
     ended = true;
     if (!ctx) return;
     const t = ctx.currentTime;
-    padGain.gain.setTargetAtTime(0, t, 0.5);
+    if (MUSIC) padGain.gain.setTargetAtTime(0, t, 0.5);
     for (let i = 0; i < 4; i++) {
         // Whoever won, the same shape: the triad, and the octave on top of
         // it. Which side it was is in the root, an octave apart.
@@ -495,7 +504,7 @@ function eighth(t) {
  * @param {number} speed how many seconds of the fight a second buys; 0 paused
  */
 export function music(balance, speed) {
-    if (!ctx) return;
+    if (!ctx || !MUSIC) return;
     const now = ctx.currentTime, b = Math.abs(balance);
     sour = Math.min(1, b * 3);
     // The same 0.08 the shader fades the second bow out over.
