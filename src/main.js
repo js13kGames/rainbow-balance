@@ -540,6 +540,12 @@ addEventListener('keydown', (e) => {
         if (k === ' ' || k === 'Enter') { start(); e.preventDefault(); }
         return;
     }
+    // And on the win screen Space or Enter begins the next run, as a touch
+    // does, rather than pausing a field that has already stopped.
+    if (sim.winner >= 0) {
+        if (k === ' ' || k === 'Enter') { snd.boot(); reset(); e.preventDefault(); }
+        return;
+    }
     // 1 to 5 choose a hand, left to right, which is the order they are in on
     // screen and what the small number in the corner of each button says.
     // Choosing is all it does: the hand still has to be used on something, and
