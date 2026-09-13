@@ -73,6 +73,15 @@ function step(dt) {
         snd.taken(p, c._side);
     }
     sim.captured.length = 0;
+    // A castle arriving: showers where it stands and a sound of its own. The
+    // draw fades it in over the next two seconds.
+    for (const c of sim.arrived) {
+        const p = sim.project(c._x, c._y, 2);
+        shower(...p);
+        shower(...p);
+        snd.arrive(p);
+    }
+    sim.arrived.length = 0;
     // And one broken back to nobody's, which is the other half of taking one.
     for (const c of sim.broken) snd.broken(sim.project(c._x, c._y, 2));
     sim.broken.length = 0;
@@ -381,7 +390,8 @@ const FOOT_S = sim.project(0, sim.FOOT, 1)[2];
  */
 function drawScene(balance) {
     drawRainbow(balance);
-    const items = sim.castles.map((c) => {
+    // Only the castles that have arrived; one arriving fades in, bar and all.
+    const items = sim.castles.filter((c) => c._up > 0).map((c) => {
         // Where it stands on the ground, put through the one camera — the
         // same one the castle shader plants it with. The third of those is
         // how big it draws, and against a foot castle's that is what sizes
@@ -399,7 +409,7 @@ function drawScene(balance) {
             _draw: () => drawCastle(px, py,
                 Math.max(c._side, 0), c._cap / sim.CAP,
                 sim.winner < 0 && c._cap > 0 && c._cap < sim.CAP ? c._cap / sim.CAP : -1,
-                c._side, ps / FOOT_S, balance),
+                c._side, ps / FOOT_S, balance, c._up),
         };
     });
     // The bow belongs at the depth of its own feet, not at the deepest

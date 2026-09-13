@@ -394,6 +394,19 @@ export function ice(p) {
 }
 
 /**
+ * A castle arriving on the field: something rising out of the ground rather
+ * than landing on it. A low swell and a bright one climbing together, over a
+ * rush opening upwards, placed where the castle stands.
+ * @param {number[]} p
+ */
+export function arrive(p) {
+    const v = near(p), x = pan(p);
+    tone('sine', 110, 220, 1.6, 0.16 * v, x, undefined, 0.6);
+    tone('triangle', 440, 1320, 1.4, 0.07 * v, x, undefined, 0.5);
+    rush(300, 5000, 1.6, 0.06 * v, x, 1.5);
+}
+
+/**
  * The god's other three hands, each its own sound and, like the first two,
  * loud and near the middle whatever the distance: 2 hides a unicorn, 3 sends
  * it berserk, 4 turns it. The last two are their spells' sounds made bigger.

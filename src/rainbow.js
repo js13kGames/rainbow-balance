@@ -493,9 +493,10 @@ uniform float uB;
 // unclaimed stone.
 uniform vec4 uC;
 // The claim being made or broken on it, as a bar over the wall: how full,
-// whose it is (−1 nobody's), and how big a thing the castle is at its depth.
+// whose it is (−1 nobody's), how big a thing the castle is at its depth, and
+// how far it has faded in, 0 to 1, having just arrived on the field.
 // A negative fill is no bar at all, which is a castle nobody is fighting for.
-uniform vec3 uA;
+uniform vec4 uA;
 
 const int CASTLE_ON = 1;
 
@@ -745,7 +746,8 @@ void main(){
     ? vec3(0.86, 0.86, 0.90) * light * base + spec * vec3(1.0, 0.97, 0.90) + fresnel * sky * 0.3
     : vec3(0.03, 0.03, 0.04) * light * base + spec * vec3(0.9, 0.85, 0.75) + fresnel * sky * 0.8;
   c = mix(c, stone, uC.w);
-  o = bar.a > 0.0 ? bar : vec4(mix(c, sky, clamp(tc * tc * FOG, 0.0, 1.0)), 1.0);
+  // A castle that has just arrived fades in, bar and all.
+  o = (bar.a > 0.0 ? bar : vec4(mix(c, sky, clamp(tc * tc * FOG, 0.0, 1.0)), 1.0)) * uA.w;
 }`;
 
 let _prog, _u, _bowProg, _bowU, _castleProg, _castleU;
@@ -804,10 +806,10 @@ export function drawRainbow(balance) {
  * @param {number} scale how big a thing the castle is at its depth
  * @param {number} balance
  */
-export function drawCastle(x, y, side, claim, bar, who, scale, balance) {
+export function drawCastle(x, y, side, claim, bar, who, scale, balance, fade) {
     gl.useProgram(_castleProg);
     _castleU({ uR: [width, height], uB: [balance],
-        uC: [x, y, side, claim], uA: [bar, who, scale] });
+        uC: [x, y, side, claim], uA: [bar, who, scale, fade] });
     fullscreen();
 }
 

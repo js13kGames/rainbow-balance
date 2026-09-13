@@ -57,6 +57,14 @@ const MID_Y = 41.357;
  */
 const NEAR_MID_Y = 14.5;
 /**
+ * The two side castles, which arrive last and together: one on each side,
+ * halfway across on the screen between the middle line and that side's home
+ * castle, at a depth halfway between the two middle castles.
+ */
+const FLANK_Y = (NEAR_MID_Y + MID_Y) / 2, FLANK_X = FOOT_X / FOOT * FLANK_Y / 2;
+/** How long a castle takes to fade in once it has arrived, in seconds. */
+const FADE_IN = 2;
+/**
  * What an unclaimed castle turns recruits out at once it is taken, against a
  * home castle's rate. Both of them use it: the one far up the field and the
  * one in the foreground.
@@ -510,26 +518,37 @@ export const herd = [];
  * @property {number} _t seconds to its next spawn
  * @property {number} _n recruits it has turned out, for whose turn it is to
  *   wear the cape
+ * @property {number} _at seconds into a run at which it arrives, 0 for a castle
+ *   there from the start
+ * @property {number} _up how far it has faded in: 0 before it arrives, rising
+ *   to 1 over FADE_IN seconds. It is on the field from the moment this is above 0
  */
 
 /**
- * The castles: one at each foot of the bow, held from the first frame, and
- * two standing unclaimed between them, one far up the field and one in the
- * foreground, for the two sides to meet over.
+ * The castles. A run starts with only the two at the feet of the bow, and the
+ * unclaimed ones arrive every thirty seconds: the one in the middle of the
+ * foreground, then the one far up the middle of the field, then the two side
+ * castles together. Until it arrives a castle is not on the field at all.
  *
- * The near one is last in the array rather than in its place along the field,
- * because the order here is read elsewhere: the first three are the left
- * castle, the middle and the right, and castles[1] is where a fighter with
- * nothing left to take is sent. Nothing walks this list in order otherwise —
- * the draw sorts it by depth and everything else looks for the nearest.
+ * The order here is read elsewhere, so the later ones are appended: the first
+ * three are the left castle, the far middle and the right, and castles[0] is
+ * where a fighter with nothing left to take is sent. Nothing else walks this
+ * list in order — the draw sorts it by depth and the rest look for the nearest.
  * @type {Castle[]}
  */
 export const castles = [
-    { _x: -FOOT_X, _y: FOOT, _from: 0, _side: 0, _cap: CAP, _own: true, _rate: 1, _t: 1, _n: 0 },
-    { _x: 0, _y: MID_Y, _from: -1, _side: -1, _cap: 0, _own: false, _rate: OUTPOST, _t: 1, _n: 0 },
-    { _x: FOOT_X, _y: FOOT, _from: 1, _side: 1, _cap: CAP, _own: true, _rate: 1, _t: 1, _n: 0 },
-    { _x: 0, _y: NEAR_MID_Y, _from: -1, _side: -1, _cap: 0, _own: false, _rate: OUTPOST, _t: 1, _n: 0 },
+    { _x: -FOOT_X, _y: FOOT, _from: 0, _side: 0, _cap: CAP, _own: true, _rate: 1, _t: 1, _n: 0, _at: 0, _up: 1 },
+    { _x: 0, _y: MID_Y, _from: -1, _side: -1, _cap: 0, _own: false, _rate: OUTPOST, _t: 1, _n: 0, _at: 60, _up: 0 },
+    { _x: FOOT_X, _y: FOOT, _from: 1, _side: 1, _cap: CAP, _own: true, _rate: 1, _t: 1, _n: 0, _at: 0, _up: 1 },
+    { _x: 0, _y: NEAR_MID_Y, _from: -1, _side: -1, _cap: 0, _own: false, _rate: OUTPOST, _t: 1, _n: 0, _at: 30, _up: 0 },
+    { _x: FLANK_X, _y: FLANK_Y, _from: -1, _side: -1, _cap: 0, _own: false, _rate: OUTPOST, _t: 1, _n: 0, _at: 90, _up: 0 },
+    { _x: -FLANK_X, _y: FLANK_Y, _from: -1, _side: -1, _cap: 0, _own: false, _rate: OUTPOST, _t: 1, _n: 0, _at: 90, _up: 0 },
 ];
+
+/** Seconds into the run, which is what the castles arrive by. */
+let clock = 0;
+/** Which castles arrived this step, for main.js to announce. Drained by the reader. */
+export const arrived = [];
 
 /**
  * What each side has learned: one of these for the sunicorns and one for the
@@ -606,7 +625,7 @@ const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff
  */
 export const TUNE = typeof __DEBUG__ === 'undefined' || __DEBUG__
     ? { HP, HURT, HEAL, LOOK, CROWD, LONG, DEEP, HIT, DMG, REACH, MAX, NEAR_Y, FAR_Y,
-        SPAWN, LIFE, SCALE0, CAP, CAP_R, TAKE, BREAK, MOB, LANE, OUTPOST, FREEZE,
+        SPAWN, LIFE, FADE_IN, SCALE0, CAP, CAP_R, TAKE, BREAK, MOB, LANE, OUTPOST, FREEZE,
         CASTLE_W, BODY, FOOT, FOOT_X, SPEED,
         MAGE_EVERY, MAGE_V, CAST, KEEP, COOL, FROST,
         RESEARCH, BOUNTY, GAIN, FULL, THINK, SWAP, COST, PREREQ, SMITE, RAGE, FURY,
@@ -622,8 +641,10 @@ export const TUNE = typeof __DEBUG__ === 'undefined' || __DEBUG__
  * a fresh one gives a fresh game.
  * @param {number} [s]
  */
-export function reset(s = 7) {
+export function reset(s = 7, by = 0) {
     seed = s;
+    clock = by;
+    arrived.length = 0;
     herd.length = 0;
     fallen.length = 0;
     spawned.length = 0;
@@ -646,6 +667,9 @@ export function reset(s = 7) {
         c._cap = c._own ? CAP : 0;
         c._t = 1;
         c._n = 0;
+        // A run can start as the field stands some seconds in, with every
+        // castle due by then already up, which is for the tests.
+        c._up = c._at <= by ? 1 : 0;
     }
 }
 
@@ -811,7 +835,7 @@ function ally(un, look) {
 function nearestCastle(un, own) {
     let best = null, bd = Infinity;
     for (const c of castles) {
-        if ((c._side === un._side && c._own) !== own) continue;
+        if (!c._up || (c._side === un._side && c._own) !== own) continue;
         const d = (c._x - un._x) ** 2 + (c._y - un._y) ** 2;
         if (d < bd) { bd = d; best = c; }
     }
@@ -832,6 +856,7 @@ function nearestCastle(un, own) {
  */
 function capture(dt) {
     for (const c of castles) {
+        if (!c._up) continue;
         let sun = 0, rain = 0;
         for (const un of herd) {
             if (un._hp <= 0) continue;
@@ -979,12 +1004,20 @@ export function step(dt) {
     // Before anything moves, because what a side has learned is what the
     // step is then played under — and against the field as it stood at the
     // top of it, which is the rule everything else in here follows too.
+    // Castles not yet on the field arrive on time, each fading in over FADE_IN
+    // seconds, though it is on the field from its first moment.
+    clock += dt;
+    for (const c of castles) {
+        if (c._up >= 1 || clock < c._at) continue;
+        if (!c._up) arrived.push(c);
+        c._up = Math.min(1, c._up + dt / FADE_IN);
+    }
     research(dt);
     capture(dt);
 
     // Every castle one side's, and every claim on them full: the run is over.
     const first = castles[0]._side;
-    if (first >= 0 && castles.every((c) => c._side === first && c._own)) winner = first;
+    if (first >= 0 && castles.every((c) => !c._up || (c._side === first && c._own))) winner = first;
 
     for (const c of castles) {
         if (!c._own) continue;
@@ -1121,7 +1154,7 @@ function decide(dt) {
         // a distance from something is a whole circle of places to stand, and
         // a unicorn shoved along that circle has nothing pulling it back.
         const goal = un._foe || rest
-            || nearestCastle(un, false) || nearestCastle(un, true) || castles[1];
+            || nearestCastle(un, false) || nearestCastle(un, true) || castles[0];
         // Marching on a castle it walks to its own lane, a little to one
         // side of the castle in depth, instead of at the castle's exact
         // depth. Every castle stands far enough inside the band for a lane
@@ -1442,7 +1475,7 @@ function walls() {
     for (const un of herd) {
         if (un._hp <= 0 || un._held > 0) continue;
         for (const c of castles) {
-            if (un._rest && c._side === un._side) continue;
+            if (!c._up || (un._rest && c._side === un._side)) continue;
             const w = CASTLE_W;
             const ex = w + un._s * LONG * 0.5;
             const ey = w + un._s * DEEP * 0.5;

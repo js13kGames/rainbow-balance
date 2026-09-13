@@ -85,7 +85,7 @@ function ok(what, ok_, detail) {
  * @param {Partial<import('../src/sim.js').Unicorn>[]} them
  */
 function stage(them) {
-    sim.reset();
+    sim.reset(7, 60);
     for (const t of them) {
         sim.herd.push({
             _x: 0, _y: 18.61, _s: 1.041, _side: 0, _face: 1, _ph: 0, _lane: 0,
@@ -525,7 +525,7 @@ function units() {
         sim.castles[1]._own = false;
         sim.castles[1]._cap = T.CAP * 0.5;
         const won = sim.winner;
-        sim.reset();
+        sim.reset(7, 60);
         run(1);
         ok('holding every castle but one is not winning it', won === 0 && sim.winner < 0,
             `won ${won}, and after a reset ${sim.winner}`);
@@ -563,6 +563,48 @@ function units() {
         ok('and by half that with half a claim on it',
             Math.abs(sim.balance - half) < 0.02,
             `balance ${sim.balance.toFixed(3)} against ${half.toFixed(3)}`);
+    }
+
+    // Castles arrive over the first minute and a half: the foreground middle
+    // at 30 seconds, the far middle at 60, the two side castles together at
+    // 90. Until then a castle is not on the field at all.
+    {
+        sim.reset(7);
+        const up = () => sim.castles.map((c) => (c._up > 0 ? 1 : 0)).join('');
+        const at0 = up(), seen = [], when = {};
+        for (let i = 1; i <= 60 * 95; i++) {
+            for (const c of sim.castles) c._t = 1e9;
+            sim.step(STEP);
+            for (const c of sim.arrived) { const k = sim.castles.indexOf(c); seen.push(k); when[k] = i * STEP; }
+            sim.arrived.length = 0;
+        }
+        ok('a run starts with only the two home castles', at0 === '101000', `castles up: ${at0}`);
+        ok('and the rest arrive on time, once each',
+            seen.join(',') === '3,1,4,5' && Math.abs(when[3] - 30) < 0.05 && Math.abs(when[1] - 60) < 0.05
+            && Math.abs(when[4] - 90) < 0.05 && Math.abs(when[5] - 90) < 0.05,
+            `arrived ${seen.join(',')} at ${Object.entries(when).map(([k, v]) => `${k}@${v.toFixed(2)}`).join(' ')}`);
+        ok('and each has faded all the way in', up() === '111111' && sim.castles.every((c) => c._up === 1),
+            sim.castles.map((c) => c._up.toFixed(2)).join(' '));
+    }
+    {
+        // Fighters standing where a castle will be do not claim it early.
+        const near = sim.castles[3];
+        stage(Array.from({ length: 5 }, (_, i) => ({ _x: near._x + (i - 2) * 0.4, _y: near._y, _side: 0, _hp: 1e6, _max: 1e6 })));
+        const at = near._at;
+        near._at = 1e9; near._up = 0;
+        run(60 * 3);
+        const claim = near._cap, side = near._side;
+        near._at = at;
+        ok('a castle that has not arrived cannot be claimed', claim === 0 && side === -1,
+            `claim ${claim.toFixed(2)} to side ${side}`);
+    }
+    {
+        sim.reset(7);
+        const rain = sim.castles[2];
+        rain._side = 0; rain._own = true; rain._cap = T.CAP;
+        sim.step(STEP);
+        ok('holding both castles on the field wins, before the rest arrive', sim.winner === 0,
+            `winner ${sim.winner}`);
     }
 
     // The board has sides, and they are the sides of the picture. On the
@@ -649,7 +691,7 @@ function field() {
     // The middle castle is what makes the fight two-dimensional. It stands
     // most of the way up the field, and neither side starts nearer it.
     {
-        sim.reset();
+        sim.reset(7, 60);
         const band = T.FAR_Y - T.NEAR_Y;
         ok('the middle castle stands far up the field',
             MID_CASTLE._y - T.NEAR_Y > band * 0.5,
@@ -967,7 +1009,7 @@ function capture() {
     {
         MID_CASTLE._side = 1; MID_CASTLE._own = true; MID_CASTLE._cap = T.CAP;
         SUN_CASTLE._side = -1; SUN_CASTLE._own = false; SUN_CASTLE._cap = 0;
-        sim.reset();
+        sim.reset(7, 60);
         ok('reset puts the castles back the way a run starts',
             SUN_CASTLE._side === 0 && SUN_CASTLE._own && SUN_CASTLE._cap === T.CAP
             && MID_CASTLE._side === -1 && !MID_CASTLE._own && MID_CASTLE._cap === 0
@@ -1333,7 +1375,7 @@ function mages() {
     // is handed the freeze outright: without it there are no capes at all,
     // which is the first case in the tech tree's own section.
     {
-        sim.reset();
+        sim.reset(7, 60);
         for (let i = 0; i < 60 * 120; i++) {
             for (const c of sim.castles) if (c !== SUN_CASTLE) c._t = 1e9;
             powers(0, 0);
@@ -1505,7 +1547,7 @@ function invariants(t) {
 
 function e2e() {
     say(`\n[sim] end to end — ${seconds}s`);
-    sim.reset();
+    sim.reset(7);
     const st = {
         deaths: 0, together: 0, promotions: 0, worst: 0, broke: 0, taken: 0, smitten: 0, decided: -1,
         capes: 0, casts: 0, frozen: 0, living: 0, roaring: 0,
@@ -1736,7 +1778,7 @@ function techTree() {
     // game that was here before it: a side that has not paid for the freeze
     // has no wizards at all, and the field is horn to horn and nothing else.
     {
-        sim.reset();
+        sim.reset(7, 60);
         for (let i = 0; i < 60 * 120; i++) {
             for (const c of sim.castles) if (c !== SUN_CASTLE) c._t = 1e9;
             powers(0);
@@ -1753,7 +1795,7 @@ function techTree() {
     // outpost its half, the same half of everything else an outpost does.
     {
         const pay = (c, rate) => {
-            sim.reset();
+            sim.reset(7, 60);
             c._side = 0;
             c._own = true;
             c._cap = T.CAP;
@@ -1770,12 +1812,12 @@ function techTree() {
         ok('and an outpost pays its half of that',
             Math.abs(out / home - T.OUTPOST) < 0.02,
             `${out.toFixed(3)} against ${home.toFixed(3)}`);
-        sim.reset();
+        sim.reset(7, 60);
     }
 
     // A claim being broken pays less in proportion, exactly as it spawns less.
     {
-        sim.reset();
+        sim.reset(7, 60);
         SUN_CASTLE._cap = T.CAP / 2;
         for (const c of sim.castles) if (c !== SUN_CASTLE) { c._side = -1; c._own = false; c._cap = 0; }
         const before = sim.tech[0]._saved;
@@ -1784,7 +1826,7 @@ function techTree() {
         ok('a castle half broken pays half as much',
             Math.abs(half - T.RESEARCH / 2) < 0.05,
             `${half.toFixed(3)} a second, against ${(T.RESEARCH / 2).toFixed(3)}`);
-        sim.reset();
+        sim.reset(7, 60);
     }
 
     // Felling an enemy pays for it, and a veteran pays what a veteran is
@@ -1836,7 +1878,7 @@ function techTree() {
     // Points go into one area at a time, stop at FULL, and a side whose area
     // is full takes up another rather than pouring them on the floor.
     {
-        sim.reset();
+        sim.reset(7, 60);
         invest(0, T.GATE, T.FULL - 0.5);
         const t = sim.tech[0];
         run(60 * 20);
@@ -1924,7 +1966,7 @@ function techTree() {
         // every step, or the cap would stop the faster gate before the
         // slower one had finished and both would count the same.
         const recruits = (points) => {
-            sim.reset();
+            sim.reset(7, 60);
             for (const c of sim.castles) if (c !== SUN_CASTLE) { c._side = -1; c._own = false; c._cap = 0; }
             invest(0, T.GATE, points);
             let n = 0;
@@ -1939,13 +1981,13 @@ function techTree() {
         ok('a side that has filled creation turns out that many more',
             Math.abs(many / plain - (1 + T.GAIN[T.GATE])) < 0.1,
             `${many} recruits against ${plain} in two minutes`);
-        sim.reset();
+        sim.reset(7, 60);
     }
 
     // The powers come in order, each for what it costs, out of the saved pool
     // and not out of the areas.
     {
-        sim.reset();
+        sim.reset(7, 60);
         const t = sim.tech[0];
         // COST is in order, so handing a side exactly the next cost buys it
         // exactly the next thing, whichever branch that is on.
@@ -2150,7 +2192,7 @@ function techTree() {
 
     // The branches are branches: neither can be entered from the other.
     {
-        sim.reset();
+        sim.reset(7, 60);
         const t = sim.tech[0];
         t._got = 0;
         t._saved = 1e9;
@@ -2166,7 +2208,7 @@ function techTree() {
         // Nothing is ever learned before the thing it is built on, however
         // much a side has saved. Watched over a whole tree's worth of buying
         // rather than asserted once, since one step only ever buys one.
-        sim.reset();
+        sim.reset(7, 60);
         const t = sim.tech[0];
         t._got = 0;
         t._t = 1e9;
@@ -2190,7 +2232,7 @@ function techTree() {
     // What the gate branch actually buys: a share of the recruits.
     {
         const bred = (...got) => {
-            sim.reset();
+            sim.reset(7, 60);
             const t = sim.tech[0];
             t._got = got.reduce((g, i) => g | 1 << i, 0);
             t._saved = -1e9;
@@ -2198,7 +2240,9 @@ function techTree() {
             const seen = new Set();
             let ber = 0, nin = 0, mage = 0, all = 0;
             for (let i = 0; i < 60 * 400; i++) {
-                for (const c of sim.castles) if (c._side !== 0) c._t = 1e9;
+                // Every recruit out of the one gate: each castle counts its own
+                // recruits, so more castles would spread them across counters.
+                for (const c of sim.castles) if (c !== sim.castles[0]) c._t = 1e9;
                 sim.step(STEP);
                 t._got = got.reduce((g, i2) => g | 1 << i2, 0);
                 for (const u of sim.herd) {

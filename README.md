@@ -140,9 +140,12 @@ way nothing of the animal inside moves, it stops walking, swinging and healing,
 and the crowd cannot shift it.
 
 Castles change hands, which is what a fighter with nothing in front of it walks
-off to do. There are four: one at each foot of the bow, held from the first
-frame, and two standing unclaimed for the two sides to meet over — one far up
-the field between them, one in the foreground under the middle of the arch.
+off to do. A run starts with two, one at each foot of the bow, and the rest
+arrive unclaimed for the two sides to meet over, one every thirty seconds, each
+fading in over two seconds with a shower and a sound of its own: first the one
+in the foreground under the middle of the arch, then the one far up the field
+between the home castles, then two together, one each side, halfway across
+between the middle and that side's home castle.
 What moves a claim is who is standing on the castle — every fighter within
 reach presses with its size, so a veteran counts for more than a recruit, and
 only the difference between the two sides tells, so a castle with as many
