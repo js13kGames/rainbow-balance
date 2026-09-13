@@ -416,13 +416,6 @@ void main(){
   float halo = glow * mage * exp(-max(u.horn, 0.0) * 34.0);
   c += vec4(iceC * 1.3, 0.6) * halo * 0.6;
 
-  // Frozen: the colour goes out of it and a shell of ice takes the light. The
-  // facets are one sine through another, which at this size is all the
-  // crystal anyone can see.
-  if (vF > 0.0) {
-    float cr = 0.5 + 0.5 * sin(p.x * 30.0 + p.y * 21.0 + sin(p.y * 44.0));
-    c.rgb = mix(c.rgb, iceC * (0.95 + 0.16 * cr) * c.a, 0.62 * vF);
-  }
 
   // In a rage: the same float the other way up. The neck is already going at
   // twice the speed, which is the half of it anybody reads first; this is so
@@ -430,7 +423,7 @@ void main(){
   // It beats rather than holds, because a colour that sits still on an animal
   // reads as what the animal is and a colour that pulses reads as what has
   // been done to it.
-  else if (vF < 0.0) {
+  if (vF < 0.0) {
     float beat = 0.72 + 0.28 * sin(uT * 17.0);
     c.rgb = mix(c.rgb, vec3(1.0, 0.31, 0.10) * beat * c.a, -0.55 * vF);
   }
@@ -495,7 +488,7 @@ void main(){
 // The swarms
 // ---------------------------------------------------------------------------
 
-import { MAX, FREEZE, COOL, FROST, RAGE, project, herd } from './sim.js';
+import { MAX, COOL, RAGE, project, herd } from './sim.js';
 
 let _prog, _u, _batch;
 
@@ -525,24 +518,19 @@ export function drawUnicorns(from, y = -Infinity) {
         const [px, py, ps] = project(un._x, un._y, un._s);
         _batch.push(px, py, un._face * ps, un._ph, un._side, un._fight,
             un._hp > 0 ? un._hp / un._max : un._hp,
-            // The one hold, told the two ways it is drawn: the player's ice is
-            // a block around the animal, a mage's frost is the animal itself
-            // gone pale. Never both at once, which is why the block can be
-            // drawn over the whole of it with no frost underneath to hide.
-            un._block ? un._held / FREEZE : 0,
+            // The one hold, drawn one way whoever cast it: a block of ice that
+            // melts down over the length of the hold.
+            un._held > 0 ? un._held / un._full : 0,
             // A fighter has no cape, and says so with a negative; a mage sends
             // how charged its spell is in the same float. A ninja goes further
             // down the same negative, since it is the one other thing a
             // fighter can be that changes how it is drawn and not what it is
             // wearing.
             un._mage ? 1 - Math.min(1, un._cast / COOL) : un._nin ? -2 : -1,
-            // The frost, or a rage the other way up. Never both: what is
-            // held is not fighting, and the frost is what the float says. A
-            // berserker bred for it is simply always at the far end of the
-            // rage, which is the same picture a wizard's rage paints.
-            un._block ? 0
-                : un._held > 0 ? Math.min(1, un._held / FROST)
-                : un._ber ? -1 : -un._rage / RAGE);
+            // A rage, as a negative. None while held: an animal in a block of
+            // ice is not raging at anything. A berserker bred for it is simply
+            // always at the far end of the rage a wizard's paints.
+            un._held > 0 ? 0 : un._ber ? -1 : -un._rage / RAGE);
     }
     gl.useProgram(_prog);
     _u({ uR: [width, height], uT: [time] });

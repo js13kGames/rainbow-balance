@@ -73,7 +73,7 @@ in front of it.
 | hills | 232 | rolling terrain in two shaders, and a frame-rate win |
 | grass detail | 216 | blades, mottle, wind, dapple |
 | the mage's cape and horn glow | 186 | wizards look like ordinary unicorns |
-| the ice block | 160 | frozen animals keep only the pale tint |
+| the ice block | 160 | frozen animals show no sign of it at all |
 | the claim bar | 151 | a capture shows only in the stone colour |
 | pace controls | 159 | fast-forward, slow, pause |
 | health bars | 62 | no per-unicorn readout |

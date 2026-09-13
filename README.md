@@ -133,14 +133,11 @@ a patch.
 
 A wizard has three spells once its side has bought all three, and the rule for
 choosing between them is in the tech tree section below. There are still only
-two *freezes*, though, and that is deliberate until both have been played. The player's is a block of ice: twenty seconds,
-cast by the second god-mode hand, and nothing of the animal inside it moves at
-all. The mage's is frost: a second and a half, cast by an animal rather than
-by the player, and it stops a unicorn walking, swinging and healing without
-taking it out of the crowd. They are meant to be told apart at a glance — the
-ice is a block standing on the ground with the unicorn inside it, the frost is
-the unicorn itself gone pale and crystalline — and which of them stays, or
-whether both do, is a question for after playing them.
+one *freeze*, whoever casts it: a block of ice standing on the ground with the
+unicorn inside it, melting down over the length of the hold. From the player's
+second hand it lasts twenty seconds; from a wizard, a second and a half. Either
+way nothing of the animal inside moves, it stops walking, swinging and healing,
+and the crowd cannot shift it.
 
 Castles change hands, which is what a fighter with nothing in front of it walks
 off to do. There are four: one at each foot of the bow, held from the first

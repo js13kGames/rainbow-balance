@@ -466,9 +466,9 @@ const FURY = 2;
  * @property {number} _lane its own depth to walk a castle down at, so that a
  *   column marching on one arrives on a front rather than in single file
  * @property {number} _held seconds of the hold left on it, 0 when free
- * @property {boolean} _block the hold is the player's block of ice rather
- *   than a mage's frost: it is drawn as a block, the crowd cannot shift it,
- *   and the animal inside it settles onto its feet
+ * @property {number} _full how long the hold was set for, which is what its
+ *   block of ice melts against: twenty seconds from the player's hand, a
+ *   second and a half from a wizard's frost
  * @property {number} _ox where it stood when the last step ended, and
  * @property {number} _oy the same: the ground it covered since is what its
  *   legs are driven by, so a unicorn that is held still does not walk on the
@@ -682,7 +682,7 @@ function spawn(castle) {
         _px: castle._x, _py: y,
         _ox: castle._x, _oy: y,
         _held: 0,
-        _block: false,
+        _full: 0,
         _hp: HP,
         _max: HP,
         _lvl: 0,
@@ -736,10 +736,9 @@ function aim(un, foe) {
  * @param {number} secs
  * @param {boolean} block the player's ice, rather than a mage's frost
  */
-function holdStill(un, secs, block) {
+function holdStill(un, secs) {
     if (secs <= un._held) return;
-    un._held = secs;
-    un._block = block;
+    un._held = un._full = secs;
 }
 
 /**
@@ -1041,28 +1040,21 @@ function decide(dt) {
         // and still stands in everyone's way, which is the whole of what a
         // mage is worth.
         //
-        // The pose is the one thing the block does differently, and it is the
-        // length of the two that asks for it. Twenty seconds of a neck held
-        // at the bottom of a lunge is a statue of a swing; the animal in the
-        // block settles onto its feet instead. A second and a half of frost
-        // is an animal stopped dead, and stopped dead is the stride it was
-        // caught in.
+        // Every hold is a block of ice, whoever cast it, and the animal in it
+        // settles onto its feet rather than being a statue of a swing.
         if (un._held > 0) {
             un._held = Math.max(0, un._held - dt);
-            if (!un._held) un._block = false;
             un._eng = false;
             un._ox = un._x;
             un._oy = un._y;
-            if (un._block) {
-                un._fight += (1 - un._fight) * Math.min(1, dt * 6);
-                // The short way round to zero. Winding a phase of twenty down
-                // by thirds takes it through every lunge on the way, and a
-                // unicorn setting into the ice was throwing its neck up and
-                // down a dozen times on the way to standing still.
-                let ph = un._ph % 6.2832;
-                if (ph > 3.1416) ph -= 6.2832;
-                un._ph = ph * Math.max(0, 1 - dt * 4);
-            }
+            un._fight += (1 - un._fight) * Math.min(1, dt * 6);
+            // The short way round to zero. Winding a phase of twenty down by
+            // thirds takes it through every lunge on the way, and a unicorn
+            // setting into the ice was throwing its neck up and down a dozen
+            // times on the way to standing still.
+            let ph = un._ph % 6.2832;
+            if (ph > 3.1416) ph -= 6.2832;
+            un._ph = ph * Math.max(0, 1 - dt * 4);
             continue;
         }
 
@@ -1269,7 +1261,7 @@ function decide(dt) {
                     if (k === 3) turn(at, un._side);
                     else if (k === 1) wound(un, at, SMITE);
                     else if (k === 2) at._rage = RAGE;
-                    else holdStill(at, FROST, false);
+                    else holdStill(at, FROST);
                     // Both ends are the ground each of them stands on, and
                     // the sizes with them. A horn and a head are above the
                     // ground, and nothing on this plain has a height to put
@@ -1440,7 +1432,7 @@ function separate(dt) {
  */
 function walls() {
     for (const un of herd) {
-        if (un._hp <= 0 || un._block) continue;
+        if (un._hp <= 0 || un._held > 0) continue;
         for (const c of castles) {
             if (un._rest && c._side === un._side) continue;
             const w = CASTLE_W;
@@ -1469,7 +1461,7 @@ function sweep(sideways) {
             const b = herd[j];
             if (b._hp <= 0) continue;
             // A block of ice does not give way; whoever met it goes round.
-            if (a._block && b._block) continue;
+            if (a._held > 0 && b._held > 0) continue;
             const w = (a._s + b._s) * 0.5;
             const oy = w * DEEP - Math.abs(b._y - a._y);
             if (oy <= 0) continue;
@@ -1491,8 +1483,8 @@ function sweep(sideways) {
             let da = -dir * oy * 0.5, db = dir * oy * 0.5;
             // One of them pinned at the edge of the band pushes the other
             // twice as far, and so does one under the ice.
-            if (a._block || a._y + da < NEAR_Y || a._y + da > FAR_Y) { db -= da; da = 0; }
-            if (b._block || b._y + db < NEAR_Y || b._y + db > FAR_Y) { da -= db; db = 0; }
+            if (a._held > 0 || a._y + da < NEAR_Y || a._y + da > FAR_Y) { db -= da; da = 0; }
+            if (b._held > 0 || b._y + db < NEAR_Y || b._y + db > FAR_Y) { da -= db; db = 0; }
             const ay = Math.min(FAR_Y, Math.max(NEAR_Y, a._y + da));
             const by = Math.min(FAR_Y, Math.max(NEAR_Y, b._y + db));
             // What the edge of the band ate, they give way sideways instead.
@@ -1632,7 +1624,7 @@ export function strike(x, y, hand) {
     // for a few seconds, which is what makes them worth a scarcer hand: a
     // ninja stays unseen, a berserker stays roaring, and a turncoat stays
     // turned. Nothing here can be undone by the other side.
-    if (hand === 1) holdStill(un, FREEZE, true);
+    if (hand === 1) holdStill(un, FREEZE);
     else if (hand === 2) un._nin = true;
     else if (hand === 3) un._ber = true;
     else if (hand === 4) turn(un, un._side ^ 1);

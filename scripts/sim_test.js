@@ -91,7 +91,7 @@ function stage(them) {
             _x: 0, _y: 18.61, _s: 1.041, _side: 0, _face: 1, _ph: 0, _lane: 0,
             _hp: T.HP, _max: T.HP, _lvl: 0,
             _fight: 0, _rest: false, _foe: null, _att: 0, _eng: false, _hit: null,
-            _mage: false, _cast: 0, _held: 0, _block: false, _rage: 0,
+            _mage: false, _cast: 0, _held: 0, _full: 0, _rage: 0,
             ...t,
         });
         // The trailing point starts under it, or it would read as walking
@@ -469,8 +469,7 @@ function units() {
             { _x: 0, _y: 18.61, _side: 0 },
             { _x: 1.075, _y: 18.61, _side: 1, _hp: 1e6, _max: 1e6 },
         ]);
-        a._held = T.FREEZE;
-        a._block = true;
+        a._held = a._full = T.FREEZE;
         const x = a._x, y = a._y, hp = b._hp;
         run(60 * 3);
         ok('a unicorn under the ice does not move', Math.hypot(a._x - x, a._y - y) < 1e-9,
@@ -481,8 +480,7 @@ function units() {
     }
     {
         const [a] = stage([{ _x: 0, _y: 18.61, _side: 0 }]);
-        a._held = T.FREEZE;
-        a._block = true;
+        a._held = a._full = T.FREEZE;
         run(60 * (T.FREEZE - 1));
         const still = a._held > 0;
         run(60 * 2);
@@ -496,8 +494,7 @@ function units() {
             { _x: 0, _y: 18.61, _side: 0 },
             { _x: -4.298, _y: 18.61, _side: 1, _hp: 1e6, _max: 1e6 },
         ]);
-        a._held = T.FREEZE;
-        a._block = true;
+        a._held = a._full = T.FREEZE;
         const x = a._x, y = a._y;
         run(60 * 4);
         ok('and nothing shoves the block aside', Math.hypot(a._x - x, a._y - y) < 1e-9,
@@ -1609,7 +1606,7 @@ function e2e() {
             for (const u of sim.herd) {
                 if (u._hp <= 0) continue;
                 st.living++;
-                if (u._held > 0 && !u._block) st.frozen++;
+                if (u._held > 0) st.frozen++;
                 if (u._rage > 0) st.roaring++;
             }
             st.worst = Math.max(st.worst, worstOverlap().worst);
