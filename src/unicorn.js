@@ -170,7 +170,7 @@ struct U {
   float farBack, farFront;
   float hoofFarBack, hoofFarFront, hoofBack, hoofFront;
   float tail, tailU, mane, maneU, horn, eye, glint;
-  float cape, clasp, hat;   // a mage's; solved for every animal, drawn for one
+  float cape, clasp;   // a mage's; solved for every animal, drawn for one
 };
 
 U parts(vec2 p, float ph, float t, float fight){
@@ -211,12 +211,6 @@ U parts(vec2 p, float ph, float t, float fight){
 
   vec2 hb = hc + vec2(0.025, 0.07) * HEAD;
   u.horn = seg(q, hb, hb + vec2(0.07, 0.17) * HEAD, 0.022 * HEAD, 0.001);
-  // A mage's hat: a cone leaning back off the crown and a brim under it, in
-  // the head's own frame so it nods with every lunge. It sits behind the horn,
-  // which comes out through the front of it.
-  vec2 hh = hc + vec2(-0.045, 0.075) * HEAD;
-  u.hat = min(seg(q, hh, hh + vec2(-0.09, 0.27) * HEAD, 0.07 * HEAD, 0.002),
-              ell(q - hh, vec2(0.12, 0.024) * HEAD));
   vec2 ec = hc + vec2(0.045, 0.012) * HEAD;
   float er = 0.016 * HEAD;
   u.eye = length(q - ec) - er;
@@ -406,8 +400,6 @@ void main(){
 
   c = part(c, u.hoofFront, 0.0, hoofC, line);
   c = part(c, u.mane, ow * 0.7, hair(u.maneU, t + 2.0), line);
-  // The hat over the mane and under the horn, in the cape's colour.
-  if (mage > 0.5) c = part(c, u.hat, ow * 0.7, shade(u.hat, capeC, capeC * 0.4, rimC), line);
   c = part(c, u.horn, ow * 0.7, hornC, line);
   c = part(c, u.eye, 0.0, eyeC, line);
   c = part(c, u.glint, 0.0, vec3(1.0), line);
