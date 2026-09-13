@@ -661,18 +661,20 @@ void main(){
   vec4 bar = vec4(0.0);
   if (uA.x >= 0.0) {
     float n = uA.z;
-    vec2 bp = p - vec2(uC.x, uC.y + 0.175 * n);
-    float box = max(abs(bp.x) - 0.075 * n, abs(bp.y) - 0.011 * n);
+    // Small, and sitting just over the top of the castle.
+    vec2 bp = p - vec2(uC.x, uC.y + 0.085 * n);
+    float box = max(abs(bp.x) - 0.05 * n, abs(bp.y) - 0.007 * n);
     if (box < 0.0) {
       // The pixel size, rather than a derivative: fwidth would be the
       // natural way to say it and costs nothing here, but nothing in this
       // shader else needs derivatives and this keeps it that way.
       float aa = 1.5 / uR.y;
-      float fill = smoothstep(aa, -aa, bp.x - (uA.x * 2.0 - 1.0) * 0.075 * n);
+      float fill = smoothstep(aa, -aa, bp.x - (uA.x * 2.0 - 1.0) * 0.05 * n);
       // Grey for nobody, yellow for the sunicorns, blue for the rainicorns.
       vec3 col = uA.y < -0.5 ? vec3(0.62, 0.62, 0.66)
                : uA.y < 0.5 ? vec3(1.00, 0.84, 0.12) : vec3(0.22, 0.48, 1.00);
-      bar = vec4(mix(vec3(0.05, 0.04, 0.08), col, fill), 1.0);
+      // Half transparent, premultiplied like everything else drawn here.
+      bar = vec4(mix(vec3(0.05, 0.04, 0.08), col, fill), 1.0) * 0.5;
     }
   }
 
