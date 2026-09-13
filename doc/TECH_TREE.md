@@ -58,7 +58,9 @@ moving `SWAP` (half) of the time. What is already in an area stays there —
 nothing is ever taken back out — so two sides come out of a long run good at
 different things, and which things is the run's own doing rather than
 anybody's plan. An area that fills is left for another at once, in `earn()`,
-rather than being poured onto the floor.
+rather than being poured onto the floor. Pace and swing never fill: points
+keep going into them past `FULL` on the same square root, so a side can always
+learn to walk and to swing faster.
 
 Points go in on a square root, so the first are worth more than the last and a
 side that has just taken up an area shows for it within seconds:
@@ -69,8 +71,8 @@ multiplier = 1 + GAIN[area] * sqrt(points / FULL)
 
 | Area | Glyph | `GAIN` | At full | Reaches the field at |
 |---|---|---|---|---|
-| pace | 🏃 | 0.4 | walks 1.4× | `:1111`, the walking speed |
-| swing | ⚔️ | 0.25 | swings 1.25× | `:1242`, the lunge — and `:1164`, a wizard's cooldown, a spell being a swing |
+| pace | 🏃 | 0.4 | walks 1.4×, and on past it | `:1111`, the walking speed |
+| swing | ⚔️ | 0.25 | swings 1.25×, and on past it | `:1242`, the lunge — and `:1164`, a wizard's cooldown, a spell being a swing |
 | sight | 👁️ | 0.6 | sees 1.6× | `:1027`, how far a fighter picks an enemy out — and `:1041`, how far a spell carries |
 | reach | ↔️ | 0.15 | reaches 1.15× | `:1076`, the distance the horns connect at |
 | creation | 🏰 | 0.35 | 1.35× the recruits | `:915`, the castle's spawn timer |

@@ -877,11 +877,19 @@ function capture(dt) {
  * @param {number} side
  * @param {number} n points
  */
+/**
+ * The two areas that never fill: a side can always learn to walk faster and
+ * to swing faster, and the points keep going in past FULL on the same square
+ * root. The other three stop at FULL.
+ * @param {number} i
+ */
+const open = (i) => i === PACE || i === SWING;
+
 function earn(side, n) {
     const t = tech[side];
     t._saved += n;
-    if (t._p[t._on] >= FULL) t._on = pick(t);
-    t._p[t._on] = Math.min(FULL, t._p[t._on] + n);
+    if (t._p[t._on] >= FULL && !open(t._on)) t._on = pick(t);
+    t._p[t._on] = open(t._on) ? t._p[t._on] + n : Math.min(FULL, t._p[t._on] + n);
 }
 
 /**
@@ -892,7 +900,7 @@ function earn(side, n) {
  */
 function pick(t) {
     const room = [];
-    for (let i = 0; i < 5; i++) if (t._p[i] < FULL) room.push(i);
+    for (let i = 0; i < 5; i++) if (t._p[i] < FULL || open(i)) room.push(i);
     return room.length ? room[rnd() * room.length | 0] : t._on;
 }
 
