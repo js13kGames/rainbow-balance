@@ -61,7 +61,9 @@ comes back a level up: a quarter of a recruit's size and half a recruit's
 hit points added — added, not compounded — grown into over a second in a
 white shower of sparks. A recruit starts at half
 size, so a field of veterans is visibly a field of veterans. Balance — the one number the sky,
-the bow and the castles read — is who has more fighters alive, smoothed. The
+the bow and the castles read — is who is ahead on the field and at the
+gates: fighters alive, plus each castle counted for the recruits its
+production keeps standing, about 7.6 for a home castle. Smoothed. The
 player's verbs are all god mode, chosen from the row of buttons at the top
 left or with the number keys they are labelled with: a touch strikes the
 unicorn under it down in a burst of sparks, or freezes it into a block of
@@ -453,7 +455,7 @@ of several; treat the free space as the pessimistic figure it is.
 | `src/rainbow.js` | three passes: the world (sky, clouds, hills, grass), a castle, the bow — one number in |
 | `src/unicorn.js` | one signed-distance unicorn, instanced — draws the herd it is handed, cape, frost, rage and all |
 | `src/sparks.js` | instanced dots: the burst a unicorn goes out in, the shower a promotion or a power bought rises in, the streak each of the three spells is drawn as |
-| `src/sim.js` | the fight: castles spawn and are captured, fighters cross the field and fight, both sides research as they go, wizards freeze, blast and enrage, balance is who is left |
+| `src/sim.js` | the fight: castles spawn and are captured, fighters cross the field and fight, both sides research as they go, wizards freeze, blast and enrage, balance is who is ahead, on the field and at the gates |
 | `src/audio.js` | every sound, made on the spot: two voices — an oscillator, and noise through a filter — a sound for each thing the field reports, and a tune written as it plays off the balance |
 | `doc/music.md` | what that file does and why, in full |
 | `scripts/sim_test.js` | the fight headless — unit tests on hand-built situations, then a long run checked for invariants, with a crude player keeping it alive |

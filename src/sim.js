@@ -31,8 +31,9 @@
  * is not along a single line.
  *
  * Balance — the one number the sky, the bow and the castles read — is who
- * has more fighters alive, smoothed so the weather does not flicker with
- * every death.
+ * is ahead on the field and at the gates: fighters alive, and each castle
+ * counted for the recruits its production keeps standing. Smoothed, so the
+ * weather does not flicker with every death.
  */
 
 /**
@@ -170,6 +171,16 @@ export const wideAt = (y) => edge * y / FOCAL;
 export const MAX = 64;
 /** Seconds between a castle's spawns. */
 const SPAWN = 2.2;
+/**
+ * How long a recruit lives, on average, in seconds of real play: measured over
+ * eight ten-minute runs under the harness's hand, 5,620 deaths. It is what
+ * turns a castle into a number of unicorns for the balance. A castle turning
+ * out one recruit every SPAWN seconds, each living this long, keeps LIFE /
+ * SPAWN of them on the field at once — about 7.6 for a home castle — so that
+ * is what holding one is worth. The mean and not the median (8.0), because a
+ * standing army is the rate times the mean, and veterans live long.
+ */
+const LIFE = 16.7;
 /** Hit points at the first level, and walking speed in world units a second. */
 const HP = 6;
 const SPEED = 4.298;
@@ -595,7 +606,7 @@ const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff
  */
 export const TUNE = typeof __DEBUG__ === 'undefined' || __DEBUG__
     ? { HP, HURT, HEAL, LOOK, CROWD, LONG, DEEP, HIT, DMG, REACH, MAX, NEAR_Y, FAR_Y,
-        SPAWN, SCALE0, CAP, CAP_R, TAKE, BREAK, MOB, LANE, OUTPOST, FREEZE,
+        SPAWN, LIFE, SCALE0, CAP, CAP_R, TAKE, BREAK, MOB, LANE, OUTPOST, FREEZE,
         CASTLE_W, BODY, FOOT, FOOT_X, SPEED,
         MAGE_EVERY, MAGE_V, CAST, KEEP, COOL, FROST,
         RESEARCH, BOUNTY, GAIN, FULL, THINK, SWAP, COST, PREREQ, SMITE, RAGE, FURY,
@@ -1370,8 +1381,19 @@ function settle(dt) {
     // Back to front, since the draw order is the depth order.
     herd.sort((a, b) => b._y - a._y);
 
+    // Who is ahead is what each side has on the field and what each side is
+    // making. A castle counts for the army it keeps standing: its production
+    // rate, exactly as the spawn timer is driven — its own rate, how full the
+    // claim on it is, and its side's research into the gate — times the
+    // recruits that rate sustains. Taking an outpost tips the board now,
+    // rather than a minute later when what it made has arrived.
     let sun = 0, rain = 0;
     for (const un of herd) if (un._hp > 0) un._side ? rain++ : sun++;
+    for (const c of castles) {
+        if (!c._own) continue;
+        const w = LIFE / SPAWN * c._rate * c._cap / CAP * tech[c._side]._m[GATE];
+        if (c._side) rain += w; else sun += w;
+    }
     const target = (sun - rain) / Math.max(sun + rain, 6);
     balance += (target - balance) * Math.min(1, dt * 1.5);
 }

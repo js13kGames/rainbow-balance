@@ -545,6 +545,29 @@ function units() {
             `it picked one ${(1.2).toFixed(1)} away, sight is ${T.LOOK}`);
     }
 
+    // The balance counts a castle for the army it keeps standing: its rate,
+    // how full its claim is, and how long what it makes lives. Checked with
+    // nobody on the field, so the castles are all of it.
+    {
+        stage([]);
+        pinned(60 * 4);
+        ok('two home castles and an empty field are a level board',
+            Math.abs(sim.balance) < 0.01, `balance ${sim.balance.toFixed(3)}`);
+        const home = T.LIFE / T.SPAWN, out = sim.castles[3];
+        out._side = 0; out._own = true; out._cap = T.CAP;
+        pinned(60 * 4);
+        const whole = home * T.OUTPOST / (2 * home + home * T.OUTPOST);
+        ok('an outpost taken tips the board to its holder by what it makes',
+            Math.abs(sim.balance - whole) < 0.02,
+            `balance ${sim.balance.toFixed(3)} against ${whole.toFixed(3)}`);
+        out._cap = T.CAP / 2;
+        pinned(60 * 4);
+        const half = home * T.OUTPOST / 2 / (2 * home + home * T.OUTPOST / 2);
+        ok('and by half that with half a claim on it',
+            Math.abs(sim.balance - half) < 0.02,
+            `balance ${sim.balance.toFixed(3)} against ${half.toFixed(3)}`);
+    }
+
     // The board has sides, and they are the sides of the picture. On the
     // ground they are not parallel: the camera's wedge opens away from it, so
     // the far field is a wider piece of ground than the near one.
