@@ -49,6 +49,7 @@ vec3 hsv(float h, float s, float v){
 // The unicorn shader's mane colours, and its body colours with the
 // rainicorn's lifted out of the near-black, which does not read as a spark.
 vec3 colour(float u, float side, float t){
+  if (u < -5.5) return vec3(0.80, 0.36, 1.0);     // a turncoat, purple
   if (u < -4.5) return vec3(1.0, 0.31, 0.10);     // a rage, the red it beats
   if (u < -3.5) return vec3(1.0, 0.86, 0.42);     // a smite, hot gold
   if (u < -2.5) return vec3(0.45, 0.82, 1.0);     // a frost
@@ -137,20 +138,17 @@ export function shower(x, y, s) {
 export function bolt(x0, y0, x1, y1, s, kind) {
     const k = s / NEAR_S;
     const dx = x1 - x0, dy = y1 - y0;
-    for (let i = 0; i <= 24 && _sparks.length < CAP; i++) {
-        // Three quarters of them strung along the line, the rest scattered
-        // over the thing at the end of it.
-        const f = i < 18 ? i / 17 : 1;
-        const w = (i < 18 ? 0.012 : 0.05) * k;
+    // A line from the caster's horn to its victim, laid down whole and left
+    // where it is to fade: nothing about a spell travels, so nothing in its
+    // picture does. Dots close enough to run together, one size all along.
+    for (let i = 0; i <= 30 && _sparks.length < CAP; i++) {
         _sparks.push({
-            _x: x0 + dx * f + (Math.random() - 0.5) * w,
-            _y: y0 + dy * f + (Math.random() - 0.5) * w,
-            // Drifting on along the line, so the streak draws itself out
-            // rather than just fading where it was laid.
-            _vx: dx * 0.35, _vy: dy * 0.35 + 0.05 * k,
-            _s: (0.005 + Math.random() * 0.005) * k,
-            _age: 0, _life: 0.3 + Math.random() * 0.25,
-            // The three spells sit next to each other below the body colour,
+            _x: x0 + dx * i / 30,
+            _y: y0 + dy * i / 30,
+            _vx: 0, _vy: 0,
+            _s: 0.008 * k,
+            _age: 0, _life: 0.45,
+            // The four spells sit next to each other below the body colour,
             // so which one it is is the only arithmetic here.
             _side: 0, _u: -3 - kind,
         });
@@ -163,6 +161,8 @@ export function stepSparks(dt) {
         const p = _sparks[i];
         p._age += dt / p._life;
         if (p._age >= 1) { _sparks.splice(i, 1); continue; }
+        // A spell's line stays where it was laid; only bursts and showers fall.
+        if (p._u < -2.5) continue;
         p._vy -= 0.9 * dt;
         p._vx *= 1 - 1.5 * dt;
         p._x += p._vx * dt;

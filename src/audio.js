@@ -336,6 +336,12 @@ export function cast(p, k) {
         // one of the caster's own rather than arriving on top of an enemy.
         tone('sawtooth', 110, 300, 0.4, 0.1 * v, x);
         rush(300, 1200, 0.42, 0.07 * v, x, 2);
+    } else if (k === 3) {
+        // A turncoat: two voices passing each other in pitch and across the
+        // stereo field, which is what changing sides sounds like.
+        tone('sine', 760, 240, 0.3, 0.09 * v, x);
+        tone('triangle', 240, 760, 0.3, 0.07 * v, -x);
+        rush(1400, 450, 0.3, 0.05 * v, x, 4);
     } else {
         tone('sine', 880, 2400, 0.24, 0.07 * v, x);
         tone('sine', 1320, 3550, 0.2, 0.04 * v, x);
@@ -385,6 +391,31 @@ export function ice(p) {
         tone('sine', f, f, 0.55, 0.11, x, t + i * 0.045, 0.004);
     }
     rush(6000, 1400, 0.5, 0.11, x, 2);
+}
+
+/**
+ * The god's other three hands, each its own sound and, like the first two,
+ * loud and near the middle whatever the distance: 2 hides a unicorn, 3 sends
+ * it berserk, 4 turns it. The last two are their spells' sounds made bigger.
+ * @param {number[]} p
+ * @param {number} k the hand
+ */
+export function hand(p, k) {
+    const x = pan(p) * 0.6;
+    if (k === 2) {
+        // A breath, and gone.
+        rush(700, 6000, 0.4, 0.16, x, 0.9);
+        tone('sine', 520, 180, 0.3, 0.08, x);
+    } else if (k === 3) {
+        // A growl coming up out of it.
+        tone('sawtooth', 90, 260, 0.45, 0.2, x);
+        tone('square', 60, 140, 0.4, 0.08, x);
+        rush(400, 1800, 0.45, 0.12, x, 2);
+    } else {
+        tone('sine', 900, 260, 0.35, 0.12, x);
+        tone('triangle', 260, 900, 0.35, 0.1, -x);
+        rush(1500, 500, 0.3, 0.08, x, 4);
+    }
 }
 
 /**
