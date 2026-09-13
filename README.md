@@ -92,8 +92,8 @@ Not every recruit fights, once a side has paid for the wizards. One in four
 then comes out of the gate in a cape and never goes horn to horn with
 anything: a mage marches where a fighter
 marches, stops short as soon as the nearest enemy is within a spell's length,
-gives ground to anything that gets well inside that, and every three and a
-half seconds freezes the nearest enemy within reach for a second and a half —
+gives ground to anything that gets well inside that, and every seven seconds
+freezes the nearest enemy within reach for nearly five —
 a unicorn that cannot walk, cannot swing and cannot heal, but is still a
 target, still presses whatever claim it was standing on, and still stands in
 everyone's way. What that hands a side is not damage. It is a fight where one
@@ -135,7 +135,7 @@ A wizard has three spells once its side has bought all three, and the rule for
 choosing between them is in the tech tree section below. There are still only
 one *freeze*, whoever casts it: a block of ice standing on the ground with the
 unicorn inside it, melting down over the length of the hold. From the player's
-second hand it lasts twenty seconds; from a wizard, a second and a half. Either
+second hand it lasts twenty seconds; from a wizard, 4.8 seconds. Either
 way nothing of the animal inside moves, it stops walking, swinging and healing,
 and the crowd cannot shift it.
 
@@ -285,7 +285,7 @@ move being a freeze thrown away — which is what makes two wizards worth more
 than twice one, the first holding and the second striking while the held one
 never swings back. With nothing helpless in front of it the rage goes on one
 of its own that is in a fight, and never on one already roaring, so it
-saturates: a rage lasts the best part of two cooldowns, and a wizard is back
+saturates: a rage lasts most of a cooldown, and a wizard is back
 to freezing as soon as the fights around it are all roaring. That is why
 putting the rage above the freeze does not bury the freeze. Over ten minutes
 the mix comes out about 1,460 frosts, 1,110 smites and 270 rages.

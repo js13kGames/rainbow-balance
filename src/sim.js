@@ -304,7 +304,7 @@ const MOB = 3;
  */
 const MAGE_EVERY = 4, MAGE_V = 1 / 3;
 const CAST = 5.861, KEEP = 3.712;
-export const COOL = 3.5, FROST = 1.6;
+export const COOL = 7, FROST = 4.8;
 
 /**
  * Research, after the tech tree in Lord of the Swarm. Neither side is
@@ -444,8 +444,8 @@ const BERSERK_EVERY = 7, NINJA_EVERY = 9;
  * a thing anybody can.
  *
  * It burns down whatever the animal is doing, frozen included, so an enemy
- * wizard's frost is an answer to it: a berserker held still for a second and
- * a half is a berserker with a second and a half less rage. It does not
+ * wizard's frost is an answer to it: a berserker held still for FROST
+ * seconds is a berserker with that much less rage. It does not
  * stack, either — casting on one already roaring only sets the clock back —
  * so a side's wizards spread it about rather than piling it on one animal.
  */
@@ -467,8 +467,8 @@ const FURY = 2;
  *   column marching on one arrives on a front rather than in single file
  * @property {number} _held seconds of the hold left on it, 0 when free
  * @property {number} _full how long the hold was set for, which is what its
- *   block of ice melts against: twenty seconds from the player's hand, a
- *   second and a half from a wizard's frost
+ *   block of ice melts against: twenty seconds from the player's hand, FROST
+ *   seconds from a wizard's frost
  * @property {number} _ox where it stood when the last step ended, and
  * @property {number} _oy the same: the ground it covered since is what its
  *   legs are driven by, so a unicorn that is held still does not walk on the
@@ -731,7 +731,7 @@ function aim(un, foe) {
  *
  * A hold is never cut short by a shorter one, which is what keeps a mage
  * casting into the player's ice from turning twenty seconds of block into a
- * second and a half of frost.
+ * few seconds of frost.
  * @param {Unicorn} un
  * @param {number} secs
  * @param {boolean} block the player's ice, rather than a mage's frost
@@ -1028,8 +1028,8 @@ function decide(dt) {
             continue;
         }
         // A rage burns down whatever the animal is doing, and that includes
-        // standing frozen: a berserker held still for a second and a half is
-        // a berserker with a second and a half less of it, which is what
+        // standing frozen: a berserker held still for a few seconds is a
+        // berserker with that much less of it, which is what
         // makes an enemy wizard's frost an answer to one.
         if (un._rage > 0) un._rage = Math.max(0, un._rage - dt);
 
@@ -1238,7 +1238,7 @@ function decide(dt) {
                 //
                 // With nothing helpless in front of it, the rage goes on one
                 // of its own that is in a fight. That saturates on its own,
-                // a rage lasting the best part of two cooldowns and never
+                // a rage lasting most of a cooldown and never
                 // stacking, so a wizard is back to freezing as soon as the
                 // fights around it are all roaring — which is why putting it
                 // above the freeze does not bury the freeze.

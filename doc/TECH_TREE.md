@@ -178,15 +178,15 @@ and chooses between them in this order:
 3. **Otherwise the frost**, which is what it started with.
 
 Putting the rage above the freeze does not bury the freeze, because the rage
-saturates: it lasts the best part of two cooldowns and never stacks, so a
+saturates: it lasts most of a cooldown and never stacks, so a
 wizard is back to freezing as soon as the fights around it are all roaring.
 Over ten minutes the mix comes out about **1,460 frosts, 1,110 smites and 270
 rages** — all three in play, and the newest of them the rarest, since it only
 exists for the last third of a run.
 
 A rage burns down whatever the animal is doing, standing frozen included, so
-an enemy wizard's frost is the answer to a berserker: held still for a second
-and a half is a second and a half less of it.
+an enemy wizard's frost is the answer to a berserker: held still for 4.8
+seconds is 4.8 seconds less of it.
 
 ## The god's five hands, and what they cost
 
