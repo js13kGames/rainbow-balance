@@ -99,8 +99,8 @@ target, still presses whatever claim it was standing on, and still stands in
 everyone's way. What that hands a side is not damage. It is a fight where one
 of the two is not swinging back. What it costs is a fighter's place in the
 herd, and a mage never levels besides, a unicorn that never wins a fight
-never walking off to heal from one. It walks at three quarters of a fighter's
-pace, which is what lets anything that picks it out run it down.
+never walking off to heal from one. It walks at a third of a fighter's pace,
+which is what lets anything that picks it out run it down.
 
 It stops short rather than holding a distance, and the difference is the
 whole of why it stays on the field: holding a spell's length from the nearest

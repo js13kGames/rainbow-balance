@@ -302,7 +302,7 @@ const MOB = 3;
  * unicorn can reach is not scaled by the depth it stands at, and a spell is
  * reach.
  */
-const MAGE_EVERY = 4, MAGE_V = 0.75;
+const MAGE_EVERY = 4, MAGE_V = 1 / 3;
 const CAST = 5.861, KEEP = 3.712;
 export const COOL = 3.5, FROST = 1.6;
 
@@ -1195,7 +1195,7 @@ function decide(dt) {
             // to stop at, so the band has to.
             un._y = Math.min(FAR_Y, Math.max(NEAR_Y,
                 un._y + (un._y - mark._y) / gap * v * dt));
-        } else if (d > stop && gap > KEEP && !healing && !stuck && !un._eng && !blocked) {
+        } else if (d > stop && gap > KEEP && !healing && !stuck && (!un._eng || (un._foe && un._foe._mage)) && !blocked) {
             // Full speed the whole way, and never a step past the thing it is
             // walking to. It used to ease off over the last little way
             // instead, and then nothing could close on anything that was
