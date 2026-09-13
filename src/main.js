@@ -139,7 +139,6 @@ function smite(cx, cy) {
     // Any touch is a gesture, and a browser will not let a sound out before
     // one, so the first of them is what starts the audio.
     snd.boot();
-    if (sim.winner >= 0) { reset(); return; }
     // Pixels to the screen's own units — the rainbow's space, y up, height 1.
     // Not to the herd's: the herd walks in world units, and what the player
     // is aiming at is the picture, which is where sim.strike() meets it.
@@ -211,7 +210,7 @@ const charge = HAND_MAX.slice();
 document.body.innerHTML =
     '<style>html,body{margin:0;height:100%;background:#05060d;overflow:hidden}'
     + 'canvas{display:block;width:100%;height:100%;touch-action:none}'
-    + '#t{position:fixed;top:8px;right:12px;color:#fff;font:600 54px/1 system-ui,sans-serif;'
+    + '#t{position:fixed;top:13px;right:88px;color:#fff;font:600 54px/1 system-ui,sans-serif;'
     + 'text-shadow:0 1px 3px #000c}'
     + '#u{position:fixed;top:92px;left:0;right:0;text-align:center;color:#fff;'
     + 'font:700 40px/1.2 system-ui,sans-serif;text-shadow:0 2px 8px #000e;'
@@ -224,8 +223,8 @@ document.body.innerHTML =
     + '#o button{font:700 30px system-ui,sans-serif;margin:1.2em auto 0;padding:.4em 1.8em;'
     + 'border:0;border-radius:14px;background:#fff;color:#223;cursor:pointer}'
     + '#p{position:fixed;left:12px;top:12px;display:flex;gap:10px}'
-    // The mute button sits just under the clock, top right.
-    + '#m{position:fixed;right:12px;top:70px}'
+    // The mute button in the top right corner, the clock just left of it.
+    + '#m{position:fixed;right:12px;top:8px}'
     + '#p b,#m{width:64px;height:64px;display:grid;place-content:center;font-size:34px;'
     + 'border-radius:14px;background:#000;border:3px solid #fff3;cursor:pointer;'
     + 'user-select:none}'
@@ -272,6 +271,24 @@ function formatClock(s) {
 }
 
 const over = /** @type {HTMLElement} */ (document.getElementById('o'));
+
+/**
+ * The one overlay, and the three screens it is: the start, the end of a run,
+ * and the pause. Each is some words and a Play button under them. It covers
+ * the whole page, so nothing under it can be pressed, and a touch anywhere on
+ * it — the button included — is Play.
+ * @param {string} words
+ * @param {() => void} play
+ */
+function screen(words, play) {
+    over.innerHTML = words + '<button>Play</button>';
+    over.style.display = 'grid';
+    over.onpointerdown = (e) => { e.stopPropagation(); snd.boot(); play(); };
+}
+function hideScreen() {
+    over.style.display = 'none';
+    over.onpointerdown = null;
+}
 let _won = -1;
 
 /**
@@ -289,7 +306,7 @@ try { best = +localStorage[BEST] || 0; } catch { /* nothing kept, nothing lost *
 function showWinner() {
     if (sim.winner === _won) return;
     _won = sim.winner;
-    if (sim.winner < 0) { over.style.display = 'none'; return; }
+    if (sim.winner < 0) { hideScreen(); return; }
     snd.over(sim.winner);
     const t = state._elapsed | 0;
     const side = sim.winner ? 'RAINICORNS' : 'SUNICORNS';
@@ -299,13 +316,10 @@ function showWinner() {
     if (t > best) {
         best = t;
         try { localStorage[BEST] = t; } catch { /* kept for this session only */ }
-        over.innerHTML = `A NEW BEST<i>${formatClock(t)}</i>`
-            + `<b>${side.toLowerCase()} took the field</b><button>Play</button>`;
+        screen(`A NEW BEST<i>${formatClock(t)}</i><b>${side.toLowerCase()} took the field</b>`, reset);
     } else {
-        over.innerHTML = `${side} HOLD THE FIELD<i>${formatClock(t)}</i>`
-            + `<b>best ${formatClock(best)}</b><button>Play</button>`;
+        screen(`${side} HOLD THE FIELD<i>${formatClock(t)}</i><b>best ${formatClock(best)}</b>`, reset);
     }
-    over.style.display = 'grid';
 }
 
 /** Rewrite the clock only when the second turns over, or the pace changes. */
@@ -536,18 +550,26 @@ speed = 0;
 function start() {
     intro = false;
     speed = played;
-    over.style.display = 'none';
-    over.onpointerdown = null;
+    hideScreen();
     snd.boot();
 }
-over.innerHTML = 'Rainbow Balance<b>For Millennia, the Sunicorns and the Rainicorns have been in '
+screen('Rainbow Balance<b>For Millennia, the Sunicorns and the Rainicorns have been in '
     + 'conflict. Each tries to destroy the other, but without both Sun and Rain there is no '
-    + 'Rainbow. Use your powers to keep both sides in balance as long as possible.</b>'
-    + '<button>Play</button>';
-over.style.display = 'grid';
-// A touch on the words is not a touch on the field under them.
-over.onpointerdown = (e) => e.stopPropagation();
-/** @type {HTMLElement} */ (over.querySelector('button')).onclick = start;
+    + 'Rainbow. Use your powers to keep both sides in balance as long as possible.</b>', start);
+
+/**
+ * The pause screen, on the same overlay as the start and the win: "Paused"
+ * and a Play button. It covers everything, so while it is up nothing else on
+ * the page can be pressed, and a touch anywhere on it — the button included —
+ * is what takes the pause off. Space still does too, and so does speeding up.
+ */
+let _paused = false;
+function showPause() {
+    const now = !intro && sim.winner < 0 && !speed;
+    if (now === _paused) return;
+    _paused = now;
+    if (now) screen('Paused', () => { speed = played; }); else hideScreen();
+}
 
 addEventListener('keydown', (e) => {
     const k = e.key;
@@ -633,6 +655,7 @@ if (!initGl(canvas)) {
         }
         paintHands();
         showWinner();
+        showPause();
         // The music is written a fifth of a second ahead of itself, off the
         // one number the whole game is read from, and at the pace the fight
         // is being watched at.
