@@ -63,6 +63,12 @@ const NEAR_MID_Y = 14.5;
  * castle, at the same depth.
  */
 const FLANK_Y = (NEAR_MID_Y + MID_Y) / 2, FLANK_X = FOOT_X / FOOT * FLANK_Y / 2;
+/**
+ * The two front castles, the last to arrive: at the foreground middle castle's
+ * depth, one each side of it, halfway across on the screen between the middle
+ * line and that side's home castle.
+ */
+const FRONT_X = FOOT_X / FOOT * NEAR_MID_Y / 2;
 /** How long a castle takes to fade in once it has arrived, in seconds. */
 const FADE_IN = 2;
 /**
@@ -529,7 +535,8 @@ export const herd = [];
  * The castles. A run starts with only the two at the feet of the bow, and the
  * unclaimed ones arrive every thirty seconds: the one in the middle of the
  * foreground, then the one far up the middle of the field, then the two side
- * castles together, then the one exactly between the two middle castles.
+ * castles together, then the one exactly between the two middle castles, and
+ * last the two front castles together, one each side of the foreground one.
  * Until it arrives a castle is not on the field at all.
  *
  * The order here is read elsewhere, so the later ones are appended: the first
@@ -546,6 +553,8 @@ export const castles = [
     { _x: FLANK_X, _y: FLANK_Y, _from: -1, _side: -1, _cap: 0, _own: false, _rate: OUTPOST, _t: 1, _n: 0, _at: 90, _up: 0 },
     { _x: -FLANK_X, _y: FLANK_Y, _from: -1, _side: -1, _cap: 0, _own: false, _rate: OUTPOST, _t: 1, _n: 0, _at: 90, _up: 0 },
     { _x: 0, _y: FLANK_Y, _from: -1, _side: -1, _cap: 0, _own: false, _rate: OUTPOST, _t: 1, _n: 0, _at: 120, _up: 0 },
+    { _x: FRONT_X, _y: NEAR_MID_Y, _from: -1, _side: -1, _cap: 0, _own: false, _rate: OUTPOST, _t: 1, _n: 0, _at: 180, _up: 0 },
+    { _x: -FRONT_X, _y: NEAR_MID_Y, _from: -1, _side: -1, _cap: 0, _own: false, _rate: OUTPOST, _t: 1, _n: 0, _at: 180, _up: 0 },
 ];
 
 /** Seconds into the run, which is what the castles arrive by. */

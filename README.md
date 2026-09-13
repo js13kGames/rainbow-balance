@@ -145,8 +145,9 @@ arrive unclaimed for the two sides to meet over, one every thirty seconds, each
 fading in over two seconds with a shower and a sound of its own: first the one
 in the foreground under the middle of the arch, then the one far up the field
 between the home castles, then two together, one each side, halfway across
-between the middle and that side's home castle, and last one exactly between
-the two middle castles.
+between the middle and that side's home castle, then one exactly between the
+two middle castles, and last, at three minutes, two more in the front, one each
+side of the foreground castle.
 What moves a claim is who is standing on the castle — every fighter within
 reach presses with its size, so a veteran counts for more than a recruit, and
 only the difference between the two sides tells, so a castle with as many
