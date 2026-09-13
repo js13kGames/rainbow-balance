@@ -35,7 +35,7 @@ export function initDebug(state, reset, sources, recompile, sim) {
 
     // Frame rate, under the clock, a third its size.
     const fps = document.createElement('div');
-    fps.style.cssText = 'position:fixed;top:70px;right:12px;color:#fff;font:600 18px/1 system-ui,sans-serif;' +
+    fps.style.cssText = 'position:fixed;top:144px;right:12px;color:#fff;font:600 18px/1 system-ui,sans-serif;' +
         'text-shadow:0 1px 3px #000c';
     document.body.appendChild(fps);
     let frames = 0, since = performance.now();

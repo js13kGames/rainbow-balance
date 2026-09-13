@@ -213,7 +213,8 @@ document.body.innerHTML =
     + '#o button{font:700 30px system-ui,sans-serif;margin:1.2em auto 0;padding:.4em 1.8em;'
     + 'border:0;border-radius:14px;background:#fff;color:#223;cursor:pointer}'
     + '#p{position:fixed;left:12px;top:12px;display:flex;gap:10px}'
-    + '#m{position:fixed;right:12px;bottom:12px}'
+    // The mute button sits just under the clock, top right.
+    + '#m{position:fixed;right:12px;top:70px}'
     + '#p b,#m{width:64px;height:64px;display:grid;place-content:center;font-size:34px;'
     + 'border-radius:14px;background:#0006;border:3px solid #fff3;cursor:pointer;'
     + 'user-select:none}'
