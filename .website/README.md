@@ -1,4 +1,8 @@
 ---
+genres:
+  - strategy
+  - simulation
+  - arcade
 post: https://tom.to/blog/rainbow-balance-js13k-post-partum/
 # See github.com/js13kGames/hello-world for supported frontmatter
 ---
